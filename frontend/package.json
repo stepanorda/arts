@@ -110,6 +110,7 @@
 		"lodash.debounce": "^4.0.8",
 		"meilisearch": "^0.34.2",
 		"node-cache": "^5.1.2",
+		"quill": "2.0.2",
 		"redis": "^4.6.13",
 		"svelte-french-toast": "^1.2.0",
 		"svelte-time": "^0.8.3",
