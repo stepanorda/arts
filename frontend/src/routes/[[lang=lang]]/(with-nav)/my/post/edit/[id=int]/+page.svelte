@@ -2,11 +2,12 @@
 	import { onMount } from 'svelte';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { PlusCircle, Photo } from '@steeze-ui/heroicons';
+	import BlogEditTitle from '$lib/components/input/BlogEditTitle.svelte';
 
 	$: showFinalData = false;
 	let delta;
 	const data = {
-		title: 'Hello! This is Title',
+		title: 'Hello!Description: Editor.data output in JSON. It is highly modular and suitable for creating editors with a modtendable via plugins, focused on simplicity and performance.',
 		ops: [
 			{ insert: 'Gandalf' },
 			{ insert: '\n' },
@@ -36,11 +37,8 @@
 	let quill;
 	$: displayPlus = false;
 	$: displayTypeButtons = false;
-	$: titleValue = 'Hello! This is Title ';
-	let titleEl;
+	$: titleValue = data.title;
 	let buttonPosition = { top: 0, left: 0 };
-
-
 
 	onMount(async () => {
 		const { default: Quill } = await import('quill');
@@ -53,21 +51,12 @@
 			theme: 'bubble'
 		});
 
-		const Block = Quill.import('blots/block');
-
-		class BlockquoteBlot extends Block {
-			static blotName = 'blockquote';
-			static tagName = 'blockquote';
-		}
-
-		Quill.register(BlockquoteBlot);
 
 		if (data.ops) {
 			quill.setContents(data.ops);
 		}
 
 		addMarginTopOnMount();
-		autoGrow(titleEl);
 
 		quill.on('text-change', () => {
 			displayPlus = false;
@@ -80,6 +69,7 @@
 			}
 		});
 
+    
 		quill.on('selection-change', (range) => {
 			displayPlus = false;
 			buttonPosition = { top: 0, left: 0 };
@@ -100,18 +90,17 @@
 		};
 	});
 
-
-  const addMarginTopOnMount = () => {
+	const addMarginTopOnMount = () => {
 		const lines = quill.getLines();
 		lines.forEach((line) => {
 			addMargin(line);
 		});
 	};
 
-
-  function addMargin(line) {
+	function addMargin(line) {
 		const lineDom = line.domNode;
-		lineDom.style.marginBottom = '21px';
+		lineDom.style.paddingTop = '10px';
+    lineDom.style.paddingBottom = '10px';
 	}
 
 	function buttonPlusHandler(range) {
@@ -124,8 +113,6 @@
 			}
 		}
 	}
-
-
 
 	function titleKeyDown(e: KeyboardEvent) {
 		if (e.key === 'Enter') {
@@ -176,11 +163,6 @@
 		}
 	}
 
-	function autoGrow(textArea) {
-		textArea.style.height = '10px';
-		textArea.style.height = `${textArea.scrollHeight}px`;
-	}
-
 	function getData() {
 		delta = quill.getContents();
 		console.log(delta);
@@ -197,7 +179,7 @@
 	}
 </script>
 
-<button type="button" class=" bg-green-100 text-center" on:click={getData}>Save </button>
+<button type="button" class="  text-center" on:click={getData}>Save </button>
 
 {#if showFinalData}
 	`
@@ -206,24 +188,15 @@
 {/if}
 
 <div class="  lg:mt-3 min-h-screen flex flex-col lg:mx-12 xl:ml-12 xl:mr-0">
-	<div class="flex">
-		<div class="w-0.5 bg-zinc-200"></div>
-		<textarea
-			on:keydown={titleKeyDown}
-			on:input={() => autoGrow(titleEl)}
-			class="border-0 p-3 focus:ring-0 text-xl sm:text-2xl lg:text-3xl w-full font-semibold font-serif placeholder:font-normal sm:max-xl:placeholder:text-center dark:bg-black dark:placeholder:text-zinc-400"
-			name="title"
-			placeholder="Title"
-			bind:value={titleValue}
-			bind:this={titleEl}
-		/>
-	</div>
 
+	<BlogEditTitle bind:titleValue on:keydown={titleKeyDown} />
+
+	<!-- svelte-ignore a11y-no-static-element-interactions -->
 	<div
 		bind:this={editor}
 		on:change={handleTextChange}
 		on:keydown={onKeydownEditor}
-		class="h-min text-xl font-serif bg-red-100 divide-x-2"
+		class="h-min text-xl font-serif  margin-0 "
 	/>
 
 	{#if displayPlus}
@@ -237,7 +210,7 @@
 
 			{#if displayTypeButtons}
 				<button
-					class="w-full bg-blue-200"
+					class="w-full "
 					on:click={() => addImageTest('Lets imagine this is Image')}
 				>
 					<Icon src={Photo} class="w-10 h-10 stroke-[0.5]  " />
@@ -248,3 +221,5 @@
 </div>
 
 <div class="ql-toolbar"></div>
+
+
