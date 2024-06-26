@@ -40,6 +40,8 @@
 	let titleEl;
 	let buttonPosition = { top: 0, left: 0 };
 
+
+
 	onMount(async () => {
 		const { default: Quill } = await import('quill');
 
@@ -51,55 +53,42 @@
 			theme: 'bubble'
 		});
 
+		const Block = Quill.import('blots/block');
+
+		class BlockquoteBlot extends Block {
+			static blotName = 'blockquote';
+			static tagName = 'blockquote';
+		}
+
+		Quill.register(BlockquoteBlot);
+
 		if (data.ops) {
 			quill.setContents(data.ops);
 		}
 
-		const addMarginTop = () => {
-			const lines = quill.getLines();
-			lines.forEach((line) => {
-				const lineDom = line.domNode;
-				lineDom.style.marginBottom = '21px';
-			});
-		};
-
-		addMarginTop();
+		addMarginTopOnMount();
+		autoGrow(titleEl);
 
 		quill.on('text-change', () => {
 			displayPlus = false;
 			buttonPosition = { top: 0, left: 0 };
-			addMarginTop();
+
+			const range = quill.getSelection();
+			if (range) {
+				const [line] = quill.getLine(range.index);
+				addMargin(line);
+			}
 		});
 
 		quill.on('selection-change', (range) => {
 			displayPlus = false;
 			buttonPosition = { top: 0, left: 0 };
-			if (range) {
-				const [line, offset] = quill.getLine(range.index);
-				if (line && line.domNode.textContent.trim() === '') {
-					showButton(line);
-				} else {
-					hideButton();
-				}
-			} else {
-				hideButton();
-			}
+			buttonPlusHandler(range);
 		});
 
-		autoGrow(titleEl);
-
 		const updateButtonPosition = () => {
-			if (quill) {
-				const range = quill.getSelection();
-				if (range) {
-					const [line, offset] = quill.getLine(range.index);
-					if (line && line.domNode.textContent.trim() === '') {
-						showButton(line);
-					} else {
-						hideButton();
-					}
-				}
-			}
+			const range = quill.getSelection();
+			buttonPlusHandler(range);
 		};
 
 		window.addEventListener('scroll', updateButtonPosition);
@@ -110,6 +99,33 @@
 			window.removeEventListener('resize', updateButtonPosition);
 		};
 	});
+
+
+  const addMarginTopOnMount = () => {
+		const lines = quill.getLines();
+		lines.forEach((line) => {
+			addMargin(line);
+		});
+	};
+
+
+  function addMargin(line) {
+		const lineDom = line.domNode;
+		lineDom.style.marginBottom = '21px';
+	}
+
+	function buttonPlusHandler(range) {
+		if (range) {
+			const [line] = quill.getLine(range.index);
+			if (line && line.domNode.textContent.trim() === '') {
+				showButton(line);
+			} else {
+				hideButton();
+			}
+		}
+	}
+
+
 
 	function titleKeyDown(e: KeyboardEvent) {
 		if (e.key === 'Enter') {
@@ -126,8 +142,6 @@
 			}
 		}
 	}
-
-
 
 	function handleTextChange(event) {
 		lastChange = event.detail.delta;
@@ -156,18 +170,9 @@
 	}
 
 	function onKeydownEditor(e: KeyboardEvent) {
-		if (e.key === 'Enter' || e.key === 'Backspace' || e.key === 'Delete') {
+		if (['Enter', 'Backspace', 'Delete'].includes(e.key)) {
 			const range = quill.getSelection();
-			if (range) {
-				const [line, offset] = quill.getLine(range.index);
-				if (line && line.domNode.textContent.trim() === '') {
-					showButton(line);
-				} else {
-					hideButton();
-				}
-			} else {
-				hideButton();
-			}
+			buttonPlusHandler(range);
 		}
 	}
 
@@ -185,7 +190,7 @@
 	function addImageTest(image) {
 		const range = quill.getSelection();
 		if (range) {
-			const [selectedLine, offset] = quill.getLine(range.index);
+			const [selectedLine] = quill.getLine(range.index);
 			const lineIndex = quill.getIndex(selectedLine);
 			quill.insertText(lineIndex, image);
 		}
