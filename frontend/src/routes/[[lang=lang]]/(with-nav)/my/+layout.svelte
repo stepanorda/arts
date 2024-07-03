@@ -7,14 +7,17 @@
 	import Hint from '$lib/components/atoms/Hint.svelte';
 	import { localePath } from '$lib/translations';
 	import ResendEmailVerification from '$lib/components/my/ResendEmailVerification.svelte';
+	import { page } from '$app/stores';
 
 	export let data;
 
 	const t = data.t;
 	const locale = data.locale;
+
 </script>
 
 {#if $user}
+{#if !$page.url.pathname.includes('post/edit/')}
 	<SideMenu style="hidden xl:block ">
 		{#if !$user.email_verified_at}
 			<Hint type="warning">{$t('my.hint.email')} <ResendEmailVerification /></Hint>
@@ -23,6 +26,7 @@
 			<Hint type="danger">{$t('my.hint.approved')}</Hint>
 		{/if}
 		<slot />
+
 		<div slot="nav" class="text-sm">
 			<div class="bg-zinc-700 dark:bg-zinc-800 h-20 w-full rounded-t-sm shadow-lg" />
 			<div
@@ -42,4 +46,12 @@
 			</SideNav>
 		</div>
 	</SideMenu>
+	{:else}
+
+	<div class="container mx-auto px-3 pb-12 ">
+		<div class="flex flex-col gap-3 mx-auto pt-3 xl:w-2/3 px-3 md:px-0">
+			<slot />
+		</div>
+	</div>
+	{/if}
 {/if}

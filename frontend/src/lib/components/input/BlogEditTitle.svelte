@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	export let titleValue: string;
-	let titleEl;
+	export let titleValue: string, titleEl: HTMLInputElement;
 
 	function autoGrow(textArea) {
 		textArea.style.height = '10px';
@@ -11,11 +10,14 @@
 
 	onMount(() => {
 		autoGrow(titleEl);
+        titleEl.focus()
 	});
+
+    
 </script>
 
 <div class="flex">
-	<div class="w-0.5 bg-zinc-200"></div>
+	<div class="w-[1px] bg-zinc-300"></div>
 	<textarea
 		on:keydown
 		on:input={() => autoGrow(titleEl)}
