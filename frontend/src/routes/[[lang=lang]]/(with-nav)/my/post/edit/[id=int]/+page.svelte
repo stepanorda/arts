@@ -24,6 +24,7 @@
 	import LocaleDate from '$lib/components/atoms/LocaleDate.svelte';
 
 	export let data;
+	let delta;
 
 	data = {
 		...data,
@@ -39,10 +40,7 @@
 			{ insert: '\n' },
 			{ insert: 'Grey' },
 			{ insert: 'The Two Towers' },
-			{
-				insert: { image: 'https://picsum.photos/id/237/600/400',  },
-				attributes: { alt: 'Funny Dog' }
-			},
+			{ insert: { image: { alt: 'Quill Cloud', url: 'https://picsum.photos/id/237/600/400' } } },
 			{ insert: 'Aragorn sped on up the hill.\n' }
 		]
 	};
@@ -83,18 +81,61 @@
 	let buttonPosition = { top: 0, left: 0 };
 	let uploadImage: number | undefined;
 	let onPublish = false;
-	let errors;
+
+
+	let selectedImage = null;
+	let imageOptionsVisible = false;
+	let imageOptionsPosition = { top: 0, left: 0 };
+	
+
+	const addImageTest = (selector, callback) => {
+		document.querySelector(selector).addEventListener('click', callback);
+	};
 
 	onMount(async () => {
 		const { default: Quill } = await import('quill');
 
 		quill = new Quill(editor, {
 			modules: {
-				toolbar: toolbarOptions,
-			
+				toolbar: toolbarOptions
 			},
 			placeholder: 'Tell your story...',
 			theme: 'bubble'
+		});
+
+		const BlockEmbed = Quill.import('blots/block/embed');
+
+		class ImageBlot extends BlockEmbed {
+			static blotName = 'image';
+			static tagName = 'img';
+
+			static create(value) {
+				let node = super.create();
+				node.setAttribute('alt', value.alt);
+				node.setAttribute('src', value.url);
+				node.setAttribute('class', 'bg-red-500 xl:w-2/3 mx-auto w-full');
+				return node;
+			}
+
+			static value(node) {
+				return {
+					alt: node.getAttribute('alt'),
+					url: node.getAttribute('src'),
+					class: node.getAttribute('class')
+				};
+			}
+		}
+
+		Quill.register(ImageBlot);
+
+		addImageTest('#image-button', () => {
+			const range = quill.getSelection(true);
+			quill.insertText(range.index, '\n');
+			quill.insertEmbed(range.index + 1, 'image', {
+				alt: 'Quill Cloud',
+				url: 'https://picsum.photos/id/237/600/400'
+			});
+			quill.setSelection(range.index + 2, Quill.sources.SILENT);
 		});
 
 		if (data.body) {
@@ -118,6 +159,15 @@
 			displayPlus = false;
 			buttonPosition = { top: 0, left: 0 };
 			buttonPlusHandler(range);
+
+			if (range) {
+				const [line] = quill.getLine(range.index);
+				if (line && line.domNode.querySelector('img')) {
+					showImageOptions(line.domNode.querySelector('img'));
+				} else {
+					imageOptionsVisible = false;
+				}
+			}
 		});
 
 		const updateButtonPosition = () => {
@@ -134,6 +184,24 @@
 		};
 	});
 
+
+
+
+	function showImageOptions(image) {
+		selectedImage = image;
+		const rect = image.getBoundingClientRect();
+		imageOptionsPosition = { top: rect.top - 30, left: rect.left };
+		imageOptionsVisible = true;
+	}
+
+
+	function resizeImage(width) {
+		if (selectedImage) {
+			selectedImage.style.width = width;
+			selectedImage.style.margin = '0 auto';
+		}
+		imageOptionsVisible = false;
+	}
 	function onKeydownEditor(e: KeyboardEvent) {
 		if (['Enter', 'Backspace', 'Delete'].includes(e.key)) {
 			const range = quill.getSelection();
@@ -201,31 +269,7 @@
 		}
 	}
 
-	function titleKeyDown(e: KeyboardEvent) {
-		if (e.key === 'Enter') {
-			e.preventDefault();
 
-			const editorContent = quill.getContents();
-
-			if (editorContent.length() === 1 && editorContent.ops[0].insert.trim() === '') {
-				quill.focus();
-			} else {
-				quill.insertText(0, '\n');
-				quill.setSelection(0);
-				quill.focus();
-			}
-		}
-		if (e.key === 'ArrowDown') {
-			const titleElement = e.target as HTMLInputElement;
-			const isLastLine = titleElement.selectionStart === titleElement.value.length;
-
-			if (isLastLine) {
-				e.preventDefault();
-				quill.setSelection(0);
-				quill.focus();
-			}
-		}
-	}
 
 	function handleTextChange(e: KeyboardEvent) {
 		lastChange = e.detail.delta;
@@ -255,52 +299,22 @@
 		showFinalData = true;
 	}
 
-	async function addImageTest() {
-		// const image = `temp/${detail[0].file}`;
-
-		// const result = await magicFetch('POST', '/api/image', {
-		// 	imageable_id: "70",
-		// 	imageable_type: 'post',
-		// 	folder: 'posts',
-		// 	images: [image]
-		// });
-		const url = 'https://picsum.photos/id/237/200/300';
-
-		const range = quill.getSelection();
-		if (range) {
-			const [selectedLine] = quill.getLine(range.index);
-			const lineIndex = quill.getIndex(selectedLine);
-			quill.insertEmbed(lineIndex, 'image', url);
-		}
-
-		// uploadImage = undefined;
-		// body[uploadImage] = {
-		// 	type: 'image',
-		// 	image_id: result[0].id
-		// };}
-		// const range = quill.getSelection();
-		// if (range) {
-		// 	const [selectedLine] = quill.getLine(range.index);
-		// 	const lineIndex = quill.getIndex(selectedLine);
-		// 	quill.insertText(lineIndex, image);
-		// }
-	}
-
 	async function save() {
 		console.log('sending data');
 	}
 </script>
 
-<!-- <button type="button" class="  text-center" on:click={getData}>Save </button>
+
+<button type="button" class="  text-center" on:click={getData}>Save </button>
 
 {#if showFinalData}
 	`
 	<div>${JSON.stringify(delta.ops, null, 2)}</div>
 	`
-{/if} -->
+{/if}
 
 <div class="  lg:mt-3 min-h-screen flex flex-col lg:mx-12 xl:ml-12 xl:mr-0 mb-12">
-	<BlogEditTitle bind:titleValue on:keydown={titleKeyDown} bind:titleEl />
+	<BlogEditTitle bind:titleValue bind:titleEl {quill}/>
 
 	<!-- svelte-ignore a11y-no-static-element-interactions -->
 	<div
@@ -310,20 +324,28 @@
 		class="h-min text-xl font-serif margin-0"
 	/>
 
-	{#if displayPlus}
-		<div
-			style="position: absolute; top: {buttonPosition.top}px; left: {buttonPosition.left}px;"
-			class="flex gap-3"
-		>
-			<button class:rotate-45={displayTypeButtons} on:click={toggleTypeButtons}>
-				<Icon src={PlusCircle} class="w-10 h-10  stroke-[0.5] " />
-			</button>
+	<div
+		style="position: absolute; top: {buttonPosition.top}px; left: {buttonPosition.left}px;"
+		class=" gap-3 {displayPlus ? 'flex' : 'hidden'}"
+	>
+		<button class:rotate-45={displayTypeButtons} on:click={toggleTypeButtons}>
+			<Icon src={PlusCircle} class="w-10 h-10  stroke-[0.5] " />
+		</button>
 
-			{#if displayTypeButtons}
-				<button class="w-full" on:click={() => addImageTest()}>
-					<Icon src={Photo} class="w-10 h-10 stroke-[0.5]  " />
-				</button>
-			{/if}
+		<button
+			id="image-button"
+			class="w-full {displayTypeButtons ? '' : 'hidden'}"
+			on:click={addImageTest}
+		>
+			<Icon src={Photo} class="w-10 h-10 stroke-[0.5]  " />
+		</button>
+	</div>
+
+	{#if imageOptionsVisible}
+		<div class="absolute" style="top: {imageOptionsPosition.top}px; left: {imageOptionsPosition.left}px;">
+			<button on:click={() => resizeImage('100%')}>Full Width</button>
+			<button on:click={() => resizeImage('80%')}>80%</button>
+			<button on:click={() => resizeImage('50%')}>50%</button>
 		</div>
 	{/if}
 </div>
@@ -346,7 +368,7 @@
 
 <ModalWindow
 	open={onPublish}
-	on:close={() => (uploadImage = undefined)}
+	on:close={() => (onPublish = !onPublish)}
 	class="w-3/4  bg-zinc-50   my-12"
 >
 	<div class="flex flex-col items-center gap-12 p-12">

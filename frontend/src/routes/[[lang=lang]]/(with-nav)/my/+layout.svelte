@@ -49,7 +49,7 @@
 	{:else}
 
 	<div class="container mx-auto px-3 pb-12 ">
-		<div class="flex flex-col gap-3 mx-auto pt-3 xl:w-2/3 px-3 md:px-0">
+		<div class="flex flex-col gap-3 mx-auto pt-3  px-3 md:px-0">
 			<slot />
 		</div>
 	</div>
