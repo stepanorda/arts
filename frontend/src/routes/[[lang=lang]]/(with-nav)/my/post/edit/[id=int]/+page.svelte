@@ -27,25 +27,6 @@
 
 	export let data;
 
-	data = {
-		...data,
-
-		body: [
-			{ insert: 'Gandalf' },
-			{ insert: '\n' },
-			{
-				insert:
-					' the Description: Editor.js is a block-styled editor designed for clean data output in JSON. It is highly modular and suitable for creating editors with a modern look and feel.Features: Block-based structure, clean JSON output, extendable via plugins, focused on simplicity and performance.'
-			},
-			{ insert: '\n' },
-			{ insert: '\n' },
-			{ insert: 'Grey' },
-			{ insert: 'The Two Towers' },
-			{ insert: { image: { alt: 'Quill Cloud', url: 'https://picsum.photos/id/237/600/400' } } },
-			{ insert: 'Aragorn sped on up the hill.\n' }
-		]
-	};
-
 	let t = getContext('t');
 	let locale = getContext('locale');
 	const maxDate = new Date(Date.now() + 60 * 60 * 24 * 60 * 1000).toISOString().split('T')[0];
@@ -68,7 +49,6 @@
 	let quill: any;
 	$: displayPlus = false;
 	$: displayTypeButtons = false;
-	let titleValue = data.title;
 	let titleEl: HTMLInputElement;
 	let buttonPosition = { top: 0, left: 0 };
 	let uploadImage: number | undefined;
@@ -163,26 +143,36 @@
 		displayTypeButtons = false;
 	}
 
-	function getData() {
-		delta = quill.getContents();
+	function getDelta() {
+		console.log('GetData');
+		body = quill.getContents();
 		showFinalData = true;
 	}
 
 	async function save() {
-		console.log('sending data');
+		console.log('saving');
+		getDelta();
+		const json = await magicFetch('PUT', localePath($locale, `/api/post/${data.post.id}`), {
+			title,
+			body,
+			published_at,
+			language,
+			image_id: image?.id || undefined // It will have id only for newly uploaded
+		});
+		errors = json?.errors;
 	}
 </script>
 
-<button type="button" class="  text-center" on:click={getData}>Save </button>
+<button type="button" class="  text-center" on:click={getDelta}>Save </button>
 
-{#if showFinalData}
+{#if showFinalData && body}
 	`
-	<div>${JSON.stringify(delta.ops, null, 2)}</div>
+	<div>${JSON.stringify(body, null, 2)}</div>
 	`
 {/if}
 
 <div class="  lg:mt-3 min-h-screen flex flex-col lg:mx-12 xl:ml-12 xl:mr-0 mb-12">
-	<BlogEditTitle bind:titleValue bind:titleEl {quill} />
+	<BlogEditTitle bind:title bind:titleEl {quill} />
 	<BlogQuillEditor
 		bind:editor
 		bind:quill
@@ -208,7 +198,7 @@
 	{/if}
 </div>
 <div class=" fixed bottom-0 right-0 space-x-2.5 pr-6 text-sm pb-3 bg-white max-xl:w-full text-end">
-	<button class="px-2.5 py-0.5 border"> Save </button>
+	<button class="px-2.5 py-0.5 border" on:click={save}> Save </button>
 	<button class="px-2.5 py-0.5 bg-emerald-600 text-white" on:click={() => (onPublish = true)}
 		>Publish</button
 	>

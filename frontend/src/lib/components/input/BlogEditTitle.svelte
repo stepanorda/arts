@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	export let titleValue: string, titleEl: HTMLInputElement, quill;
+	export let title: string, titleEl: HTMLInputElement, quill;
 
 	function autoGrow(textArea) {
 		textArea.style.height = '10px';
@@ -48,7 +48,7 @@
 		class="border-0 p-3 focus:ring-0 text-xl sm:text-2xl lg:text-3xl w-full font-semibold font-serif placeholder:font-normal sm:max-xl:placeholder:text-center dark:bg-black dark:placeholder:text-zinc-400"
 		name="title"
 		placeholder="Title"
-		bind:value={titleValue}
+		bind:value={title}
 		bind:this={titleEl}
 	/>
 </div>
