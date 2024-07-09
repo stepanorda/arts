@@ -22,9 +22,10 @@
 	import ArticlePreview from '$lib/components/post/ArticlePreview.svelte';
 	import AvatarLink from '$lib/components/atoms/AvatarLink.svelte';
 	import LocaleDate from '$lib/components/atoms/LocaleDate.svelte';
+	import BlogQuillEditor from '$lib/components/editor/BlogQuillEditor.svelte';
+	import OptionButtonsGroup from '$lib/components/editor/OptionButtonsGroup.svelte';
 
 	export let data;
-	let delta;
 
 	data = {
 		...data,
@@ -44,14 +45,6 @@
 			{ insert: 'Aragorn sped on up the hill.\n' }
 		]
 	};
-	const toolbarOptions = [
-		{ header: [2, false] },
-		'bold',
-		'italic',
-		'link',
-		'blockquote',
-		{ list: 'ordered' }
-	];
 
 	let t = getContext('t');
 	let locale = getContext('locale');
@@ -71,7 +64,6 @@
 	});
 
 	let showFinalData = false;
-	let lastChange;
 	let editor: any;
 	let quill: any;
 	$: displayPlus = false;
@@ -81,111 +73,36 @@
 	let buttonPosition = { top: 0, left: 0 };
 	let uploadImage: number | undefined;
 	let onPublish = false;
-
-
+	let delta;
 	let selectedImage = null;
 	let imageOptionsVisible = false;
 	let imageOptionsPosition = { top: 0, left: 0 };
-	
 
-	const addImageTest = (selector, callback) => {
-		document.querySelector(selector).addEventListener('click', callback);
-	};
+	function onTextChange() {
+		displayPlus = false;
+		buttonPosition = { top: 0, left: 0 };
 
-	onMount(async () => {
-		const { default: Quill } = await import('quill');
+		const range = quill.getSelection();
+		if (range) {
+			const [line] = quill.getLine(range.index);
+			addPadding(line);
+		}
+	}
 
-		quill = new Quill(editor, {
-			modules: {
-				toolbar: toolbarOptions
-			},
-			placeholder: 'Tell your story...',
-			theme: 'bubble'
-		});
+	function onSelectionChange(range: { index: number }) {
+		displayPlus = false;
+		buttonPosition = { top: 0, left: 0 };
+		buttonPlusHandler(range);
 
-		const BlockEmbed = Quill.import('blots/block/embed');
-
-		class ImageBlot extends BlockEmbed {
-			static blotName = 'image';
-			static tagName = 'img';
-
-			static create(value) {
-				let node = super.create();
-				node.setAttribute('alt', value.alt);
-				node.setAttribute('src', value.url);
-				node.setAttribute('class', 'bg-red-500 xl:w-2/3 mx-auto w-full');
-				return node;
-			}
-
-			static value(node) {
-				return {
-					alt: node.getAttribute('alt'),
-					url: node.getAttribute('src'),
-					class: node.getAttribute('class')
-				};
+		if (range) {
+			const [line] = quill.getLine(range.index);
+			if (line && line.domNode.querySelector('img')) {
+				showImageOptions(line.domNode.querySelector('img'));
+			} else {
+				imageOptionsVisible = false;
 			}
 		}
-
-		Quill.register(ImageBlot);
-
-		addImageTest('#image-button', () => {
-			const range = quill.getSelection(true);
-			quill.insertText(range.index, '\n');
-			quill.insertEmbed(range.index + 1, 'image', {
-				alt: 'Quill Cloud',
-				url: 'https://picsum.photos/id/237/600/400'
-			});
-			quill.setSelection(range.index + 2, Quill.sources.SILENT);
-		});
-
-		if (data.body) {
-			quill.setContents(data.body);
-		}
-
-		addMarginTopOnMount();
-
-		quill.on('text-change', () => {
-			displayPlus = false;
-			buttonPosition = { top: 0, left: 0 };
-
-			const range = quill.getSelection();
-			if (range) {
-				const [line] = quill.getLine(range.index);
-				addMargin(line);
-			}
-		});
-
-		quill.on('selection-change', (range: { index: number }) => {
-			displayPlus = false;
-			buttonPosition = { top: 0, left: 0 };
-			buttonPlusHandler(range);
-
-			if (range) {
-				const [line] = quill.getLine(range.index);
-				if (line && line.domNode.querySelector('img')) {
-					showImageOptions(line.domNode.querySelector('img'));
-				} else {
-					imageOptionsVisible = false;
-				}
-			}
-		});
-
-		const updateButtonPosition = () => {
-			const range = quill.getSelection();
-			buttonPlusHandler(range);
-		};
-
-		window.addEventListener('scroll', updateButtonPosition);
-		window.addEventListener('resize', updateButtonPosition);
-
-		return () => {
-			window.removeEventListener('scroll', updateButtonPosition);
-			window.removeEventListener('resize', updateButtonPosition);
-		};
-	});
-
-
-
+	}
 
 	function showImageOptions(image) {
 		selectedImage = image;
@@ -194,7 +111,6 @@
 		imageOptionsVisible = true;
 	}
 
-
 	function resizeImage(width) {
 		if (selectedImage) {
 			selectedImage.style.width = width;
@@ -202,77 +118,31 @@
 		}
 		imageOptionsVisible = false;
 	}
-	function onKeydownEditor(e: KeyboardEvent) {
-		if (['Enter', 'Backspace', 'Delete'].includes(e.key)) {
-			const range = quill.getSelection();
-			buttonPlusHandler(range);
-		}
 
-		if (e.key === 'ArrowUp') {
-			const range = quill.getSelection();
-			if (range && range.index === 0) {
-				e.preventDefault();
-				titleEl.focus();
-				titleEl.setSelectionRange(titleEl.value.length, titleEl.value.length);
-			}
-		}
-
-		if (['Backspace', 'Delete'].includes(e.key)) {
-			const range = quill.getSelection();
-
-			if (range && range.index === 0) {
-				e.preventDefault();
-				const [line, offset] = quill.getLine(range.index);
-				if (line && line.domNode.textContent.trim() === '') {
-					editor.addEventListener('keydown', onBackspaceAtFirstLine);
-				} else {
-					editor.removeEventListener('keydown', onBackspaceAtFirstLine);
-				}
-			}
-		}
+	function handleTitleFocus() {
+		titleEl.focus();
+		titleEl.setSelectionRange(titleEl.value.length, titleEl.value.length);
 	}
 
-	function onBackspaceAtFirstLine(e: KeyboardEvent) {
-		if (e.key === 'Backspace') {
-			e.preventDefault();
-			quill.deleteText(0, 1);
-			titleEl.focus();
-			titleEl.setSelectionRange(titleEl.value.length, titleEl.value.length);
-			editor.removeEventListener('keydown', onBackspaceAtFirstLine);
-		}
-	}
-	function toggleTypeButtons() {
-		displayTypeButtons = !displayTypeButtons;
-	}
-
-	const addMarginTopOnMount = () => {
-		const lines = quill.getLines();
-		lines.forEach((line: { domNode: HTMLBodyElement }) => {
-			addMargin(line);
-		});
-	};
-
-	function addMargin(line: { domNode: HTMLBodyElement }) {
+	function addPadding(line: { domNode: HTMLBodyElement }) {
 		const lineDom = line.domNode;
 		lineDom.style.paddingTop = '10px';
 		lineDom.style.paddingBottom = '10px';
 	}
 
-	function buttonPlusHandler(range: { index: number }) {
+	function buttonPlusHandler(range) {
 		if (range) {
-			const [line] = quill.getLine(range.index);
+			if (range.type === 'buttonPlusHandler') {
+				range = range.detail;
+			}
+
+			const [line] = quill.getLine(range?.index);
 			if (line && line.domNode.textContent.trim() === '') {
 				showButton(line);
 			} else {
 				hideButton();
 			}
 		}
-	}
-
-
-
-	function handleTextChange(e: KeyboardEvent) {
-		lastChange = e.detail.delta;
 	}
 
 	function showButton(line: { domNode: HTMLBodyElement }) {
@@ -282,7 +152,7 @@
 		const scrollLeft = window.scrollX || document.documentElement.scrollLeft;
 
 		buttonPosition = {
-			top: rect.top + scrollTop - 10,
+			top: rect.top + scrollTop,
 			left: rect.left + scrollLeft - 60
 		};
 		displayPlus = true;
@@ -295,7 +165,6 @@
 
 	function getData() {
 		delta = quill.getContents();
-		console.log(delta);
 		showFinalData = true;
 	}
 
@@ -303,7 +172,6 @@
 		console.log('sending data');
 	}
 </script>
-
 
 <button type="button" class="  text-center" on:click={getData}>Save </button>
 
@@ -314,35 +182,25 @@
 {/if}
 
 <div class="  lg:mt-3 min-h-screen flex flex-col lg:mx-12 xl:ml-12 xl:mr-0 mb-12">
-	<BlogEditTitle bind:titleValue bind:titleEl {quill}/>
-
-	<!-- svelte-ignore a11y-no-static-element-interactions -->
-	<div
-		bind:this={editor}
-		on:change={handleTextChange}
-		on:keydown={onKeydownEditor}
-		class="h-min text-xl font-serif margin-0"
+	<BlogEditTitle bind:titleValue bind:titleEl {quill} />
+	<BlogQuillEditor
+		bind:editor
+		bind:quill
+		bind:body={data.body}
+		on:handleTitleFocus={handleTitleFocus}
+		on:buttonPlusHandler={buttonPlusHandler}
+		{onTextChange}
+		{onSelectionChange}
+		{addPadding}
 	/>
 
-	<div
-		style="position: absolute; top: {buttonPosition.top}px; left: {buttonPosition.left}px;"
-		class=" gap-3 {displayPlus ? 'flex' : 'hidden'}"
-	>
-		<button class:rotate-45={displayTypeButtons} on:click={toggleTypeButtons}>
-			<Icon src={PlusCircle} class="w-10 h-10  stroke-[0.5] " />
-		</button>
-
-		<button
-			id="image-button"
-			class="w-full {displayTypeButtons ? '' : 'hidden'}"
-			on:click={addImageTest}
-		>
-			<Icon src={Photo} class="w-10 h-10 stroke-[0.5]  " />
-		</button>
-	</div>
+	<OptionButtonsGroup bind:quill bind:buttonPosition bind:displayPlus bind:displayTypeButtons />
 
 	{#if imageOptionsVisible}
-		<div class="absolute" style="top: {imageOptionsPosition.top}px; left: {imageOptionsPosition.left}px;">
+		<div
+			class="absolute"
+			style="top: {imageOptionsPosition.top}px; left: {imageOptionsPosition.left}px;"
+		>
 			<button on:click={() => resizeImage('100%')}>Full Width</button>
 			<button on:click={() => resizeImage('80%')}>80%</button>
 			<button on:click={() => resizeImage('50%')}>50%</button>

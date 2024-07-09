@@ -9,9 +9,8 @@
 	}
 
 	onMount(() => {
-		
 		autoGrow(titleEl);
-        titleEl.focus()
+		titleEl.focus();
 	});
 
 	function titleKeyDown(e: KeyboardEvent) {
@@ -39,8 +38,6 @@
 			}
 		}
 	}
-
-    
 </script>
 
 <div class="  xl:w-2/3 xl:mx-auto">

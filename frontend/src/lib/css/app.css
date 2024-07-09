@@ -8,8 +8,6 @@ body {
 	@apply bg-white dark:bg-black text-black dark:text-gray-100;
 }
 
-
-
 .ql-bubble .ql-editor blockquote {
 	@apply dark:border-zinc-600;
 
@@ -19,22 +17,22 @@ body {
 	padding-left: 16px;
 }
 
-
-
-
-
-.ql-editor p, .ql-editor ol, .ql-editor pre, .ql-editor blockquote, .ql-editor h1, .ql-editor h2, .ql-editor h3, .ql-editor h4, .ql-editor h5, .ql-editor h6 {
-	@apply xl:w-2/3 mx-auto ;
+.ql-editor p,
+.ql-editor ol,
+.ql-editor pre,
+.ql-editor blockquote,
+.ql-editor h1,
+.ql-editor h2,
+.ql-editor h3,
+.ql-editor h4,
+.ql-editor h5,
+.ql-editor h6 {
+	@apply xl:w-2/3 mx-auto;
 }
-
 
 .ql-container.ql-bubble:not(.ql-disabled) a:not(.ql-close) {
-
-    white-space: wrap;
+	white-space: wrap;
 }
-
-
-
 
 * {
 	scrollbar-color: initial !important;
