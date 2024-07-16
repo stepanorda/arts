@@ -43,7 +43,7 @@ class PostRequest extends FormRequest
                 'nullable',
                 'exists:images,id'
             ],
-            'body' => [
+            'body.ops' => [
                 'array'
             ],
         ];

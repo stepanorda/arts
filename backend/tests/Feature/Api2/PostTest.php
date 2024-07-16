@@ -32,80 +32,36 @@ test('Save post', function () {
     $image = Image::factory()->create();
     $work = Work::factory()->create();
 
+    $validDelta = [
+        "ops" =>
+            [
+                [
+                    "insert" => "text1\ntext2"
+                ],
+                [
+                    "attributes" => ["header" => 1],
+                    "insert" => "\n"
+                ]
+            ]
+    ];
     $validBody = [
         'title' => 'test title',
         'language' => 'en',
-        'body' => [
-            [
-                'type' => 'text',
-                'text' => 'test text',
-            ],
-            [
-                'type' => 'image',
-                'image_id' => $image->id,
-            ],
-            [
-                'type' => 'work',
-                'works' => [$work->id]
-            ],
-        ]
+        'body' => $validDelta
     ];
     // Can't edit another user's post.
     $this->actingAs($wrongUser)->putJson("/api2/post/{$post->id}", $validBody)->assertForbidden();
 
     // Required fields
     $this->actingAs($user)->putJson("/api2/post/{$post->id}", [
-        'body' => [
-            [
-                'type' => 'text',
-                'image_id' => 666,
-            ],
-            [
-                'type' => 'image',
-                'text' => 'test text',
-            ],
-            [
-                'type' => 'work',
-            ],
-        ]
+        'body' => $validDelta
     ])->assertInvalid([
-        'title', 'body.0.text', 'body.1.image_id', 'body.2.works', 'language'
+        'title', 'language'
     ]);
 
-    // Test work and image fields exist
-    $this->actingAs($user)->putJson("/api2/post/{$post->id}", [
-        'title' => 'test title',
-        'body' => [
-            [
-                'type' => 'text',
-                'text' => 'test text',
-            ],
-            [
-                'type' => 'image',
-                'image_id' => 666,
-            ],
-            [
-                'type' => 'work',
-                'works' => [666]
-            ],
-        ]
-    ])->assertInvalid(['body.1.image_id', 'body.2.works.0']);
     $this->actingAs($user)->putJson("/api2/post/{$post->id}", $validBody)->assertOk();
     \Pest\Laravel\assertDatabaseHas('posts', [
         'title' => 'test title',
-        'body' => json_encode([
-            [
-                'type' => 'text',
-                'text' => 'test text',
-            ],
-            [
-                'type' => 'image',
-                'image_id' => $image->id,
-            ],
-            [
-                'type' => 'work',
-                'works' => [$work->id]
-            ],
-        ]),
+        'body' => json_encode($validDelta)
     ]);
 });
