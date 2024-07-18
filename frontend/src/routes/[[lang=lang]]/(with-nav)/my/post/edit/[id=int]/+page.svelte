@@ -43,6 +43,7 @@
 		({ body, title, published_at, language, image } = data.post);
 		published_at = published_at?.toISOString().split('T')[0];
 	});
+	console.log(body)
 
 	let showFinalData = false;
 	let editor: any;
@@ -57,6 +58,8 @@
 	let selectedImage = null;
 	let imageOptionsVisible = false;
 	let imageOptionsPosition = { top: 0, left: 0 };
+
+
 
 	function onTextChange() {
 		displayPlus = false;
@@ -76,6 +79,7 @@
 
 		if (range) {
 			const [line] = quill.getLine(range.index);
+			console.log(line)
 			if (line && line.domNode.querySelector('img')) {
 				showImageOptions(line.domNode.querySelector('img'));
 			} else {
@@ -144,14 +148,13 @@
 	}
 
 	function getDelta() {
-		console.log('GetData');
 		body = quill.getContents();
 		showFinalData = true;
 	}
 
 	async function save() {
-		console.log('saving');
 		getDelta();
+		console.log('body on save', body)
 		const json = await magicFetch('PUT', localePath($locale, `/api/post/${data.post.id}`), {
 			title,
 			body,
@@ -176,7 +179,7 @@
 	<BlogQuillEditor
 		bind:editor
 		bind:quill
-		bind:body={data.body}
+		bind:body
 		on:handleTitleFocus={handleTitleFocus}
 		on:buttonPlusHandler={buttonPlusHandler}
 		{onTextChange}
@@ -185,7 +188,7 @@
 	/>
 
 	<OptionButtonsGroup bind:quill bind:buttonPosition bind:displayPlus bind:displayTypeButtons />
-
+<!-- 
 	{#if imageOptionsVisible}
 		<div
 			class="absolute"
@@ -195,7 +198,7 @@
 			<button on:click={() => resizeImage('80%')}>80%</button>
 			<button on:click={() => resizeImage('50%')}>50%</button>
 		</div>
-	{/if}
+	{/if} -->
 </div>
 <div class=" fixed bottom-0 right-0 space-x-2.5 pr-6 text-sm pb-3 bg-white max-xl:w-full text-end">
 	<button class="px-2.5 py-0.5 border" on:click={save}> Save </button>
@@ -304,3 +307,115 @@
 		</div>
 	</div>
 </ModalWindow>
+
+
+
+<!-- <script lang="ts">
+	import { onMount } from 'svelte';
+  
+	let editor;
+  
+	onMount(async () => {
+	  const Quill = (await import('quill')).default;
+  
+	  class InputModule {
+		constructor(quill, options) {
+		  this.quill = quill;
+		  this.container = null;
+		  this.input = null;
+		  this.init();
+		}
+  
+		init() {
+		  this.quill.root.addEventListener('keydown', this.handleKeydown.bind(this));
+		}
+  
+		handleKeydown(event) {
+		  if (event.key === '1' && !this.container) {
+			this.showInputField();
+		  } else if (event.key === 'Enter' && this.container) {
+			event.preventDefault();
+			this.insertText();
+		  }
+		}
+  
+		showInputField() {
+		  const range = this.quill.getSelection();
+		  if (range) {
+			this.container = document.createElement('div');
+			this.container.className = 'ql-input-container';
+			this.input = document.createElement('div');
+			this.input.contentEditable = 'true';
+			this.input.className = 'ql-input-div';
+			this.input.setAttribute('placeholder', 'Type something...');
+			this.container.appendChild(this.input);
+			this.quill.container.appendChild(this.container);
+  
+			this.input.focus();
+		  }
+		}
+  
+		insertText() {
+		  const value = this.input.innerText.trim();
+		  if (value) {
+			const range = this.quill.getSelection();
+			if (range) {
+			  this.quill.insertText(range.index, value, 'user');
+			  this.quill.setSelection(range.index + value.length);
+			  this.clearInputField();
+			}
+		  }
+		}
+  
+		clearInputField() {
+		  this.input.innerText = '';
+		  this.quill.container.removeChild(this.container);
+		  this.container = null;
+		  this.input = null;
+		}
+	  }
+  
+	  Quill.register('modules/input', InputModule);
+  
+	  const quill = new Quill(editor, {
+		theme: 'bubble',
+		modules: {
+		  toolbar: [
+			[{ header: [1, 2, false] }],
+			['bold', 'italic', 'underline'],
+			['image', 'code-block'],
+			[{ list: 'ordered' }, { list: 'bullet' }],
+			['input']
+		  ],
+		  input: {}
+		}
+	  });
+	});
+  </script>
+  
+  <div bind:this={editor} class="editor-container"></div>
+  
+  <style>
+	.ql-input-container {
+	  margin-top: 10px;
+	  display: flex;
+	  gap: 10px;
+	}
+	.ql-input-div {
+	  flex: 1;
+	  padding: 5px;
+	  border: 1px solid #ccc;
+	  border-radius: 4px;
+	  min-height: 30px;
+	  outline: none;
+	}
+	.ql-input-div[placeholder]:empty:before {
+	  content: attr(placeholder);
+	  color: #999;
+	}
+  </style> -->
+  
+
+
+
+

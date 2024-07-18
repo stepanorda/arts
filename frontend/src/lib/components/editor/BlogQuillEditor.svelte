@@ -1,9 +1,88 @@
 <script lang="ts">
 	import { onMount, createEventDispatcher } from 'svelte';
-	export let editor, quill, body, onTextChange, onSelectionChange, addPadding;
+	import Block, { BlockEmbed } from 'quill/blots/block';
+	import Container from 'quill/blots/container';
 
-	let lastChange;
+	export let editor, quill, body, onTextChange, onSelectionChange, addPadding;
+	const bodyexample = [{ insert: 'jkbjkbn\nhghjg' }, { attributes: { caption: 1 }, insert: '\n' }];
 	let Quill;
+	let lastChange;
+
+	const bindings = {
+		tab: {
+			key: 'Enter',
+			handler: function (range, context) {
+				const [line] = quill.getLine(range.index);
+				const { length } = line;
+				const { index } = range;
+				console.log(line, range);
+
+				if (index === length) {
+					// Cursor is at the end of the line, allow Quill to create a new line
+					return true;
+				} else {
+					// Cursor is at the beginning or in the middle of the line
+					if (line.domNode.classList.contains('custom-caption')) {
+						// Prevent Quill from inserting a new line
+						return false;
+					} else {
+						// Allow Quill to insert a new line
+						return true;
+					}
+				}
+			}
+		}
+	};
+
+	class Figure extends Container {
+		static blotName = 'figure-container';
+		static tagName = 'figure';
+	}
+
+	class Caption extends Block {
+		static blotName = 'caption';
+		static tagName = 'figcaption';
+
+		static create(value: string) {
+			const node = super.create() as HTMLElement;
+			node.innerText = value;
+			node.classList.add('custom-caption');
+
+			return node;
+		}
+
+		static value(node) {
+			return node.innerText;
+		}
+	}
+
+	class Image extends BlockEmbed {
+		static blotName = 'image-l';
+		static tagName = 'img';
+
+		static create(value: string) {
+			const node = super.create() as HTMLElement;
+			node.setAttribute('src', value.src);
+			node.setAttribute('alt', value.alt);
+			node.setAttribute('class', 'bg-green-500 hover:ring-2 hover:ring-blue-600');
+			node.addEventListener('click', (e) => {
+				e.stopImmediatePropagation();
+				console.log('click');
+			});
+			return node;
+		}
+
+		static value(node) {
+			return {
+				src: node.getAttribute('src'),
+				alt: node.getAttribute('alt')
+			};
+		}
+	}
+
+	Figure.allowedChildren = [Caption, Image];
+	Image.requiredContainer = Figure;
+	Caption.requiredContainer = Figure;
 
 	const dispatch = createEventDispatcher();
 
@@ -19,54 +98,25 @@
 	onMount(async () => {
 		Quill = (await import('quill')).default;
 
+		Quill.register(Figure);
+		Quill.register(Image);
+		Quill.register(Caption, true);
+
 		quill = new Quill(editor, {
 			modules: {
-				toolbar: toolbarOptions
+				toolbar: toolbarOptions,
+				keyboard: {
+					bindings: bindings
+				}
 			},
 			placeholder: 'Tell your story...',
 			theme: 'bubble'
 		});
 
-		const BlockEmbed = Quill.import('blots/block/embed');
-
-		// Fixes the error "Overwriting formats/image"
-		if (Quill.imports['formats/image']) {
-			delete Quill.imports['formats/image'];
+		if (body.ops) {
+			quill.setContents(bodyexample);
 		}
 
-		class ImageBlot extends BlockEmbed {
-			static blotName = 'image';
-			static tagName = 'img';
-
-			static create(value) {
-				let node = super.create();
-				node.setAttribute('alt', value.alt);
-				node.setAttribute('src', value.url);
-				node.setAttribute(
-					'class',
-					' xl:w-2/3 mx-auto w-full hover:ring-4 hover:ring-green-500 p-0'
-				);
-
-				node.addEventListener('click', () => {
-					console.log('Image clicked!');
-				});
-				return node;
-			}
-
-			static value(node) {
-				return {
-					alt: node.getAttribute('alt'),
-					url: node.getAttribute('src'),
-					class: node.getAttribute('class')
-				};
-			}
-		}
-
-		Quill.register(ImageBlot);
-
-		if (body) {
-			quill.setContents(body);
-		}
 		addPaddingpOnMount();
 		quill.on('text-change', onTextChange);
 		quill.on('selection-change', onSelectionChange);
@@ -124,24 +174,17 @@
 
 	const addPaddingpOnMount = () => {
 		const lines = quill.getLines();
-		console.log(lines);
+
 		lines.forEach((line: { domNode: HTMLBodyElement }) => {
 			const blot = Quill.find(line.domNode);
 			const blotName = blot?.constructor?.blotName;
-			console.log(blotName);
 			if (blotName === 'block') {
 				addPadding(line);
-			} else {
-				console.log('it is not BLOCK');
-				// const lineDom = line.domNode;
-				// lineDom.style.marginTop = '10px';
-				// lineDom.style.marginBottom = '10px';
-				// lineDom.removeAttribute("style")
 			}
 		});
 	};
 
-	function handleTextChange() {
+	function handleTextChange(e) {
 		lastChange = e.detail.delta;
 	}
 </script>
