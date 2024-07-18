@@ -1,11 +1,8 @@
-
-
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { PlusCircle } from '@steeze-ui/heroicons';
 	import AddImageButtton from './AddImageButtton.svelte';
-
 
 	export let buttonPosition, displayPlus, displayTypeButtons: boolean, quill;
 
@@ -18,13 +15,10 @@
 				caption: 'Example Caption'
 			};
 
-			quill.insertEmbed(range.index , 'image-l', imageContainerData);
-			quill.insertEmbed(range.index+1 , 'caption', 'Example Caption');
-			quill.setSelection(range.index)
-			// quill.insertText(0, 'Hello', 'caption', true);
-			// quill.format('header', 1);
-			
-			
+			quill.insertEmbed(range.index, 'figure-container', true);
+			quill.insertEmbed(range.index, 'image-l', imageContainerData);
+			quill.insertEmbed(range.index + 1, 'caption', {index:range.index+1, value:'Example' });
+			quill.insertText(range.index + 1, 'This is Caption');
 		});
 	});
 

@@ -4,31 +4,30 @@
 	import Container from 'quill/blots/container';
 
 	export let editor, quill, body, onTextChange, onSelectionChange, addPadding;
-	const bodyexample = [{ insert: 'jkbjkbn\nhghjg' }, { attributes: { caption: 1 }, insert: '\n' }];
 	let Quill;
 	let lastChange;
+	
 
 	const bindings = {
 		tab: {
 			key: 'Enter',
 			handler: function (range, context) {
 				const [line] = quill.getLine(range.index);
-				const { length } = line;
-				const { index } = range;
-				console.log(line, range);
 
-				if (index === length) {
-					// Cursor is at the end of the line, allow Quill to create a new line
-					return true;
-				} else {
-					// Cursor is at the beginning or in the middle of the line
-					if (line.domNode.classList.contains('custom-caption')) {
-						// Prevent Quill from inserting a new line
+				let length = context.prefix + context.suffix;
+
+				// Cursor is at the beginning or in the middle of the line
+				if (line.domNode.dataset.caption === 'true') {
+					if (length.length === context.offset) {
+						console.log('hello');
+						quill.insertEmbed(range.index + 1, '', null);
+						quill.setSelection(range.index + 1, 0);
 						return false;
 					} else {
-						// Allow Quill to insert a new line
-						return true;
+						return false;
 					}
+				} else {
+					return true;
 				}
 			}
 		}
@@ -42,23 +41,36 @@
 	class Caption extends Block {
 		static blotName = 'caption';
 		static tagName = 'figcaption';
+		static className = '';
+
+		
+
+
 
 		static create(value: string) {
+			console.log(value);
 			const node = super.create() as HTMLElement;
-			node.innerText = value;
-			node.classList.add('custom-caption');
+			node.setAttribute('data-caption', 'true');
+			
+			let defaultValue = 'Type caption...'
 
+			node.addEventListener('click', (e) => {
+				e.stopImmediatePropagation();
+				console.log('click');
+			});
 			return node;
 		}
 
 		static value(node) {
-			return node.innerText;
+			
+			return {value: 'Hello'}
 		}
 	}
 
 	class Image extends BlockEmbed {
 		static blotName = 'image-l';
 		static tagName = 'img';
+		static className = '';
 
 		static create(value: string) {
 			const node = super.create() as HTMLElement;
@@ -97,10 +109,9 @@
 
 	onMount(async () => {
 		Quill = (await import('quill')).default;
-
 		Quill.register(Figure);
 		Quill.register(Image);
-		Quill.register(Caption, true);
+		Quill.register(Caption);
 
 		quill = new Quill(editor, {
 			modules: {
@@ -114,7 +125,7 @@
 		});
 
 		if (body.ops) {
-			quill.setContents(bodyexample);
+			quill.setContents(body.ops);
 		}
 
 		addPaddingpOnMount();
