@@ -24,6 +24,7 @@
 	import LocaleDate from '$lib/components/atoms/LocaleDate.svelte';
 	import BlogQuillEditor from '$lib/components/editor/BlogQuillEditor.svelte';
 	import OptionButtonsGroup from '$lib/components/editor/OptionButtonsGroup.svelte';
+	import { updated } from '$app/stores';
 
 	export let data;
 
@@ -43,7 +44,7 @@
 		({ body, title, published_at, language, image } = data.post);
 		published_at = published_at?.toISOString().split('T')[0];
 	});
-	console.log(body)
+	console.log(body);
 
 	let showFinalData = false;
 	let editor: any;
@@ -58,33 +59,56 @@
 	let selectedImage = null;
 	let imageOptionsVisible = false;
 	let imageOptionsPosition = { top: 0, left: 0 };
+	let Quill;
 
+	onMount(async () => {
+		Quill = (await import('quill')).default;
+	});
 
-
-	function onTextChange() {
+	function onTextChange(_, oldRange, source) {
 		displayPlus = false;
 		buttonPosition = { top: 0, left: 0 };
 
 		const range = quill.getSelection();
 		if (range) {
 			const [line] = quill.getLine(range.index);
+			const blot = Quill.find(line.domNode);
+			const blotName = blot?.constructor?.blotName;
+			// console.log(blot.domNode.innerText === 'hi');
+			// if (blot.domNode.innerText === 'hi') {
+			// 	quill.insertText(range.index+1, "span")
+			// 	return;
+			// }
+
 			addPadding(line);
 		}
 	}
 
-	function onSelectionChange(range: { index: number }) {
+
+
+	function onSelectionChange(range: { index: number }, oldRange, source) {
+		// console.log('source', source)
 		displayPlus = false;
 		buttonPosition = { top: 0, left: 0 };
 		buttonPlusHandler(range);
 
 		if (range) {
 			const [line] = quill.getLine(range.index);
-			console.log(line)
-			if (line && line.domNode.querySelector('img')) {
-				showImageOptions(line.domNode.querySelector('img'));
+			const blot = Quill.find(line.domNode);
+			const blotName = blot?.constructor?.blotName;
+			if (line && blotName === 'caption') {
+			
+			
+				
 			} else {
 				imageOptionsVisible = false;
 			}
+
+			// if (line && line.domNode.querySelector('img')) {
+			// 	showImageOptions(line.domNode.querySelector('img'));
+			// } else {
+			// 	imageOptionsVisible = false;
+			// }
 		}
 	}
 
@@ -154,7 +178,7 @@
 
 	async function save() {
 		getDelta();
-		console.log('body on save', body)
+		console.log('body on save', body);
 		const json = await magicFetch('PUT', localePath($locale, `/api/post/${data.post.id}`), {
 			title,
 			body,
@@ -188,7 +212,7 @@
 	/>
 
 	<OptionButtonsGroup bind:quill bind:buttonPosition bind:displayPlus bind:displayTypeButtons />
-<!-- 
+	<!-- 
 	{#if imageOptionsVisible}
 		<div
 			class="absolute"
@@ -308,8 +332,6 @@
 	</div>
 </ModalWindow>
 
-
-
 <!-- <script lang="ts">
 	import { onMount } from 'svelte';
   
@@ -414,8 +436,3 @@
 	  color: #999;
 	}
   </style> -->
-  
-
-
-
-

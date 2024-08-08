@@ -8,17 +8,18 @@
 
 	onMount(async () => {
 		addImageTest('#image-button', () => {
-			const range = quill.getSelection(true);
 			const imageContainerData = {
 				src: 'https://picsum.photos/id/237/600/400',
 				alt: 'Quill Cloud',
-				caption: 'Example Caption'
+				caption: 'Example', 
+				selected:true
+				
 			};
 
-			quill.insertEmbed(range.index, 'figure-container', true);
-			quill.insertEmbed(range.index, 'image-l', imageContainerData);
-			quill.insertEmbed(range.index + 1, 'caption', {index:range.index+1, value:'Example' });
-			quill.insertText(range.index + 1, 'This is Caption');
+			const range = quill.getSelection();
+			quill.insertEmbed(range.index, 'image', imageContainerData);
+			quill.setSelection(range.index+1 );
+			quill.format('caption', {selected:true});
 		});
 	});
 

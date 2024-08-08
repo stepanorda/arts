@@ -30,6 +30,22 @@ body {
 	@apply xl:w-2/3 mx-auto;
 }
 
+.ql-editor [contenteditable='true'].empty:before {
+	content: attr(placeholder);
+	pointer-events: none;
+	display: block; /* For Firefox block - need to be checked */
+	position: absolute;
+
+	left: 0;
+	white-space: nowrap;
+	font-size: 8;
+	color: red;
+}
+
+.ql-editor [contenteditable='true'].empty {
+	position: relative;
+}
+
 .ql-container.ql-bubble:not(.ql-disabled) a:not(.ql-close) {
 	white-space: wrap;
 }

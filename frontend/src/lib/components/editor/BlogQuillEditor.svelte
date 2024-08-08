@@ -1,128 +1,25 @@
 <script lang="ts">
 	import { onMount, createEventDispatcher } from 'svelte';
+	import { setQuillInstance } from './quillInstance';
 	import Block, { BlockEmbed } from 'quill/blots/block';
-	import Container from 'quill/blots/container';
 
 	export let editor, quill, body, onTextChange, onSelectionChange, addPadding;
 	let Quill;
 	let lastChange;
-	
-
-	const bindings = {
-		tab: {
-			key: 'Enter',
-			handler: function (range, context) {
-				const [line] = quill.getLine(range.index);
-
-				let length = context.prefix + context.suffix;
-
-				// Cursor is at the beginning or in the middle of the line
-				if (line.domNode.dataset.caption === 'true') {
-					if (length.length === context.offset) {
-						console.log('hello');
-						quill.insertEmbed(range.index + 1, '', null);
-						quill.setSelection(range.index + 1, 0);
-						return false;
-					} else {
-						return false;
-					}
-				} else {
-					return true;
-				}
-			}
-		}
-	};
-
-	class Figure extends Container {
-		static blotName = 'figure-container';
-		static tagName = 'figure';
-	}
-
-	class Caption extends Block {
-		static blotName = 'caption';
-		static tagName = 'figcaption';
-		static className = '';
-
-		
-
-
-
-		static create(value: string) {
-			console.log(value);
-			const node = super.create() as HTMLElement;
-			node.setAttribute('data-caption', 'true');
-			
-			let defaultValue = 'Type caption...'
-
-			node.addEventListener('click', (e) => {
-				e.stopImmediatePropagation();
-				console.log('click');
-			});
-			return node;
-		}
-
-		static value(node) {
-			
-			return {value: 'Hello'}
-		}
-	}
-
-	class Image extends BlockEmbed {
-		static blotName = 'image-l';
-		static tagName = 'img';
-		static className = '';
-
-		static create(value: string) {
-			const node = super.create() as HTMLElement;
-			node.setAttribute('src', value.src);
-			node.setAttribute('alt', value.alt);
-			node.setAttribute('class', 'bg-green-500 hover:ring-2 hover:ring-blue-600');
-			node.addEventListener('click', (e) => {
-				e.stopImmediatePropagation();
-				console.log('click');
-			});
-			return node;
-		}
-
-		static value(node) {
-			return {
-				src: node.getAttribute('src'),
-				alt: node.getAttribute('alt')
-			};
-		}
-	}
-
-	Figure.allowedChildren = [Caption, Image];
-	Image.requiredContainer = Figure;
-	Caption.requiredContainer = Figure;
 
 	const dispatch = createEventDispatcher();
 
-	const toolbarOptions = [
-		{ header: [2, false] },
-		'bold',
-		'italic',
-		'link',
-		'blockquote',
-		{ list: 'ordered' }
-	];
-
 	onMount(async () => {
 		Quill = (await import('quill')).default;
-		Quill.register(Figure);
-		Quill.register(Image);
-		Quill.register(Caption);
+		const { Figure, ImageBlot, Caption } = await import('./CustomBlots');
+		Quill.register(Figure, true);
+		Quill.register(ImageBlot, true);
+		Quill.register(Caption, true);
 
-		quill = new Quill(editor, {
-			modules: {
-				toolbar: toolbarOptions,
-				keyboard: {
-					bindings: bindings
-				}
-			},
-			placeholder: 'Tell your story...',
-			theme: 'bubble'
-		});
+		const { initializeQuill } = await import('./initializeQuill');
+
+		quill = initializeQuill(editor);
+		setQuillInstance(quill);
 
 		if (body.ops) {
 			quill.setContents(body.ops);
@@ -131,6 +28,33 @@
 		addPaddingpOnMount();
 		quill.on('text-change', onTextChange);
 		quill.on('selection-change', onSelectionChange);
+
+		quill.on('selection-change', (range, oldRange, source) => {
+			if (range) {
+				const [currentLine] = quill.getLine(range.index);
+				console.log(source);
+				const isBlock = oldRange instanceof Block;
+
+				if (oldRange && !isBlock) {
+					const [oldLine] = quill.getLine(oldRange.index);
+					const isCaption = currentLine instanceof Caption;
+
+				
+
+					if (oldLine.parent instanceof Figure  && !isCaption && source === 'user') {
+						oldLine.parent.domNode.setAttribute('data-selected', false);
+
+						oldLine.selected = false;
+					}
+
+					// if (oldLine.parent instanceof ImageBlot && source === 'api') {
+					// 	oldLine.parent.domNode.setAttribute('data-selected', false);
+
+					// 	oldLine.selected = false;
+					// }
+				}
+			}
+		});
 
 		const updateButtonPosition = () => {
 			const range = quill.getSelection();
