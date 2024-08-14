@@ -17,7 +17,7 @@ body {
 	padding-left: 16px;
 }
 
-.ql-editor p,
+
 .ql-editor ol,
 .ql-editor pre,
 .ql-editor blockquote,
@@ -30,20 +30,38 @@ body {
 	@apply xl:w-2/3 mx-auto;
 }
 
+.ql-editor figcaption {
+	@apply text-blue-500 py-3 text-center;
+}
+
+.ql-editor p {
+	@apply xl:w-2/3 mx-auto py-3;
+}
+.ql-editor figure {
+	@apply xl:w-2/3 mx-auto py-3 bg-zinc-100;
+}
+
 .ql-editor [contenteditable='true'].empty:before {
 	content: attr(placeholder);
 	pointer-events: none;
 	display: block; /* For Firefox block - need to be checked */
 	position: absolute;
 
-	left: 0;
+
 	white-space: nowrap;
 	font-size: 8;
 	color: red;
+	/* background-color:blue; */
+	
+}
+
+.ql-editor [contenteditable='true'].empty:before {
+	@apply w-1/2 start-1/4;
 }
 
 .ql-editor [contenteditable='true'].empty {
 	position: relative;
+	/* background-color:green; */
 }
 
 .ql-container.ql-bubble:not(.ql-disabled) a:not(.ql-close) {

@@ -279,7 +279,6 @@
 		quill.on('text-change', (delta, oldDelta, source) => {
 			displayPlus = false;
 			buttonPosition = { top: 0, left: 0 };
-			console.log(delta);
 		});
 
 		quill.on('selection-change', (range, oldRange, source) => {
@@ -391,7 +390,6 @@
 
 	function getData() {
 		const delta = quill.getContents();
-		console.log(delta);
 	}
 
 	function addImageTest(image) {

@@ -3,7 +3,6 @@ import Container from 'quill/blots/container';
 import Quill from 'quill';
 import { getQuillInstance } from './quillInstance';
 
-
 class Figure extends Container {
 	static blotName = 'parent';
 	static tagName = 'figure';
@@ -27,7 +26,7 @@ class ImageBlot extends BlockEmbed {
 	constructor(domNode, value) {
 		super(domNode, value);
 		this._selected = false;
-		this.domNode.addEventListener('click', this.select.bind(this));
+		this.domNode.addEventListener('click', this.onClick.bind(this));
 	}
 
 	static create(value) {
@@ -37,10 +36,14 @@ class ImageBlot extends BlockEmbed {
 		return node;
 	}
 
-	static value(node) {
-		return {
-			src: node.getAttribute('src')
-		};
+	onClick() {
+		const quill = getQuillInstance();
+
+		const index = this.offset(this.scroll);
+
+		quill.setSelection(index, 0, Quill.sources.USER);
+		this.selected = true;
+		this.select();
 	}
 
 	get selected() {
@@ -48,18 +51,11 @@ class ImageBlot extends BlockEmbed {
 	}
 
 	set selected(value) {
-		console.log('new selected', value);
 		this._selected = value;
-		console.log('trigered');
 		this.updateSelection();
 	}
 
 	select() {
-		const quillInstance = getQuillInstance();
-
-		const index = this.offset(this.scroll);
-		quillInstance.setSelection(index, 0, Quill.sources.USER);
-
 		this.selected = true;
 		this.next?.domNode.classList.remove('hidden');
 	}
@@ -68,6 +64,12 @@ class ImageBlot extends BlockEmbed {
 		if (!this.selected && this.next?.domNode.textContent.trim() === '') {
 			this.next?.domNode.classList.add('hidden');
 		}
+	}
+
+	static value(node) {
+		return {
+			src: node.getAttribute('src')
+		};
 	}
 }
 
@@ -79,6 +81,7 @@ class Caption extends Block {
 		super(domNode, value);
 		this.checkForEmpty();
 		this.addClassList();
+		this.domNode.addEventListener('click', this.onClick.bind(this));
 	}
 
 	static create(value) {
@@ -90,15 +93,20 @@ class Caption extends Block {
 		return node;
 	}
 
+	onClick(e) {
+		// console.log('hello');
+	}
+
 	// static value(node) {
 	// 	return node.textContent;
 	// }
 
 	addClassList() {
 		let selected = this.domNode.dataset.selected === 'true';
-
+		// console.log('addClassList');
 		if (this.domNode.textContent.trim() != '' || selected) {
 			this.domNode.classList.remove('hidden');
+			// this.domNode.dataset.selected = 'hello';
 		} else {
 			this.domNode.classList.add('hidden');
 		}

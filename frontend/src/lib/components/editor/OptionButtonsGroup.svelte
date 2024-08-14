@@ -20,6 +20,8 @@
 			quill.insertEmbed(range.index, 'image', imageContainerData);
 			quill.setSelection(range.index+1 );
 			quill.format('caption', {selected:true});
+		
+			quill.insertText(range.index+3,"", 'silent' );
 		});
 	});
 

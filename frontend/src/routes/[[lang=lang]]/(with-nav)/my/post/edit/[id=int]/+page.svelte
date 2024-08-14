@@ -44,7 +44,7 @@
 		({ body, title, published_at, language, image } = data.post);
 		published_at = published_at?.toISOString().split('T')[0];
 	});
-	console.log(body);
+	
 
 	let showFinalData = false;
 	let editor: any;
@@ -71,45 +71,24 @@
 
 		const range = quill.getSelection();
 		if (range) {
-			const [line] = quill.getLine(range.index);
-			const blot = Quill.find(line.domNode);
-			const blotName = blot?.constructor?.blotName;
-			// console.log(blot.domNode.innerText === 'hi');
-			// if (blot.domNode.innerText === 'hi') {
-			// 	quill.insertText(range.index+1, "span")
-			// 	return;
-			// }
-
-			addPadding(line);
+			// addPadding(line);
 		}
 	}
 
-
-
-	function onSelectionChange(range: { index: number }, oldRange, source) {
-		// console.log('source', source)
+	function onSelectionChange(range, oldRange, source) {
 		displayPlus = false;
 		buttonPosition = { top: 0, left: 0 };
 		buttonPlusHandler(range);
 
-		if (range) {
-			const [line] = quill.getLine(range.index);
-			const blot = Quill.find(line.domNode);
-			const blotName = blot?.constructor?.blotName;
-			if (line && blotName === 'caption') {
-			
-			
-				
-			} else {
-				imageOptionsVisible = false;
-			}
+		// 	// const [line] = quill.getLine(range.index);
+		// 	// const blot = Quill.find(line.domNode);
+		// 	// const blotName = blot?.constructor?.blotName;
+		// 	// if (line && blotName === 'caption') {
 
-			// if (line && line.domNode.querySelector('img')) {
-			// 	showImageOptions(line.domNode.querySelector('img'));
-			// } else {
-			// 	imageOptionsVisible = false;
-			// }
-		}
+		// 	// } else {
+		// 	// 	imageOptionsVisible = false;
+		// 	// }
+
 	}
 
 	function showImageOptions(image) {
@@ -178,7 +157,6 @@
 
 	async function save() {
 		getDelta();
-		console.log('body on save', body);
 		const json = await magicFetch('PUT', localePath($locale, `/api/post/${data.post.id}`), {
 			title,
 			body,

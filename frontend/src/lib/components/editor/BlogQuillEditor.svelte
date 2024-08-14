@@ -25,33 +25,91 @@
 			quill.setContents(body.ops);
 		}
 
-		addPaddingpOnMount();
+		// addPaddingpOnMount();
 		quill.on('text-change', onTextChange);
 		quill.on('selection-change', onSelectionChange);
+
+		quill.on('text-change', (delta, oldDelta, source) => {});
+
+		// ----------- this code broke tooltip------------------
 
 		quill.on('selection-change', (range, oldRange, source) => {
 			if (range) {
 				const [currentLine] = quill.getLine(range.index);
-				console.log(source);
-				const isBlock = oldRange instanceof Block;
+				const [oldLine] = quill.getLine(oldRange?.index);
+				const isCaption = currentLine instanceof Caption;
+				const toolbar = quill.getModule('toolbar');
 
-				if (oldRange && !isBlock) {
+				if (currentLine.parent instanceof Figure) {
+					currentLine.parent.children.head.select();
+				}
+
+				if (oldLine instanceof Caption && !isCaption) {
+					toolbar.controls.forEach((control) => {
+						const format = control[0];
+						const button = control[1];
+
+						if (['header', 'blockquote', 'list'].includes(format)) {
+							button.style.display = 'none';
+							console.log('oldRange caption');
+						}
+					});
+				}
+
+				if (currentLine instanceof Caption) {
+					if (range.length > 0) {
+						console.log('oldRange caption');
+
+						// toolbar.clean()
+						toolbar.controls.filter((control) => {
+							const format = control[0];
+							const button = control[1];
+
+							if (['header', 'blockquote', 'list'].includes(format)) {
+								// // button.classList.add('hidden');
+								button.style.display = 'none'; // Приховати кнопку
+								// console.log(button);
+							}
+						});
+					}
+				}
+
+				if (oldRange) {
 					const [oldLine] = quill.getLine(oldRange.index);
+
+					const isBlock = oldRange instanceof Block;
+					const isImageBlot = currentLine instanceof ImageBlot;
 					const isCaption = currentLine instanceof Caption;
 
-				
+					const currentIndex = currentLine.parent.offset(currentLine.parent.scroll);
+					const oldLineIndex = oldLine.parent.offset(oldLine.parent.scroll);
 
-					if (oldLine.parent instanceof Figure  && !isCaption && source === 'user') {
-						oldLine.parent.domNode.setAttribute('data-selected', false);
+					if (oldLine.parent instanceof Figure && currentIndex != oldLineIndex) {
+						oldLine.parent.children.head.selected = false;
 
-						oldLine.selected = false;
+						toolbar.controls.forEach((control) => {
+							const button = control[1];
+							button.style.display = '';
+							console.log('remove class1');
+						});
 					}
 
-					// if (oldLine.parent instanceof ImageBlot && source === 'api') {
-					// 	oldLine.parent.domNode.setAttribute('data-selected', false);
+					if (oldLine instanceof ImageBlot && !isCaption) {
+						console.log('unselected1', oldLine);
+						oldLine.selected = false;
+						oldLine.parent.domNode.setAttribute('data-selected', 'false');
+					}
 
-					// 	oldLine.selected = false;
-					// }
+					if (
+						oldLine instanceof Caption &&
+						!isImageBlot &&
+						!isCaption &&
+						oldLine.domNode.textContent === ''
+					) {
+						console.log('unselected2', oldLine.prev);
+						if (oldLine.prev instanceof ImageBlot) oldLine.prev.selected = false;
+						oldLine.parent.domNode.setAttribute('data-selected', 'false');
+					}
 				}
 			}
 		});
@@ -120,7 +178,7 @@
 	};
 
 	function handleTextChange(e) {
-		lastChange = e.detail.delta;
+		// lastChange = e.detail.delta;
 	}
 </script>
 
