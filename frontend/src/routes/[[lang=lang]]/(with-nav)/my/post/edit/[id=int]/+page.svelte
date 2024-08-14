@@ -80,31 +80,8 @@
 		buttonPosition = { top: 0, left: 0 };
 		buttonPlusHandler(range);
 
-		// 	// const [line] = quill.getLine(range.index);
-		// 	// const blot = Quill.find(line.domNode);
-		// 	// const blotName = blot?.constructor?.blotName;
-		// 	// if (line && blotName === 'caption') {
-
-		// 	// } else {
-		// 	// 	imageOptionsVisible = false;
-		// 	// }
-
 	}
 
-	function showImageOptions(image) {
-		selectedImage = image;
-		const rect = image.getBoundingClientRect();
-		imageOptionsPosition = { top: rect.top - 30, left: rect.left };
-		imageOptionsVisible = true;
-	}
-
-	function resizeImage(width) {
-		if (selectedImage) {
-			selectedImage.style.width = width;
-			selectedImage.style.margin = '0 auto';
-		}
-		imageOptionsVisible = false;
-	}
 
 	function handleTitleFocus() {
 		titleEl.focus();
@@ -119,6 +96,7 @@
 
 	function buttonPlusHandler(range) {
 		if (range) {
+		
 			if (range.type === 'buttonPlusHandler') {
 				range = range.detail;
 			}
@@ -134,6 +112,7 @@
 
 	function showButton(line: { domNode: HTMLBodyElement }) {
 		displayTypeButtons = false;
+
 		const rect = line.domNode.getBoundingClientRect();
 		const scrollTop = window.scrollY || document.documentElement.scrollTop;
 		const scrollLeft = window.scrollX || document.documentElement.scrollLeft;

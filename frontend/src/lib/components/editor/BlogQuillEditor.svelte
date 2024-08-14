@@ -29,9 +29,15 @@
 		quill.on('text-change', onTextChange);
 		quill.on('selection-change', onSelectionChange);
 
-		quill.on('text-change', (delta, oldDelta, source) => {});
 
-		// ----------- this code broke tooltip------------------
+
+
+
+
+
+
+
+
 
 		quill.on('selection-change', (range, oldRange, source) => {
 			if (range) {
