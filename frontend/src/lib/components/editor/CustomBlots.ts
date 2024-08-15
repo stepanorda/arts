@@ -31,7 +31,6 @@ class ImageBlot extends BlockEmbed {
 	onMount() {
 		const value = this.domNode.value;
 		this.selected = value.selected || false;
-		console.log(this.selected);
 	}
 
 	onClick() {
@@ -53,7 +52,6 @@ class ImageBlot extends BlockEmbed {
 		if (this._selected) {
 			this.select();
 		} else {
-			console.log('unselect');
 			this.unselect();
 		}
 	}
@@ -63,16 +61,12 @@ class ImageBlot extends BlockEmbed {
 		this.domNode.classList.add('ring-4');
 		this.domNode.classList.add('ring-green-600');
 
-		const quill = getQuillInstance();
-		const toolbar = quill.getModule('toolbar');
-		toolbar.controls.forEach((control) => {
-			const format = control[0];
-			const button = control[1];
-
-			if (['header', 'blockquote', 'list'].includes(format)) {
-				button.style.display = 'none';
-			}
-		});
+		const toolbar = this.getToolbar();
+        toolbar.controls.forEach(([format, button]) => {
+            if (['header', 'blockquote', 'list'].includes(format)) {
+                button.style.display = 'none';
+            }
+        });
 	}
 
 	unselect() {
@@ -82,14 +76,18 @@ class ImageBlot extends BlockEmbed {
 		this.domNode.classList.remove('ring-4');
 		this.domNode.classList.remove('ring-green-600');
 
-		const quill = getQuillInstance();
-		const toolbar = quill.getModule('toolbar');
 
-		toolbar.controls.forEach((control) => {
-			const button = control[1];
-			button.style.display = '';
-		});
+
+		const toolbar = this.getToolbar();
+        toolbar.controls.forEach(([, button]) => {
+            button.style.display = '';
+        });
 	}
+
+	getToolbar() {
+        const quill = getQuillInstance();
+        return quill.getModule('toolbar');
+    }
 
 	static value(node) {
 		return {

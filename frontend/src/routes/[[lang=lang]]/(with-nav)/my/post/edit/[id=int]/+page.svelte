@@ -1,36 +1,26 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { PlusCircle, Photo, Heart, ChatBubbleOvalLeft } from '@steeze-ui/heroicons';
+	import { Heart, ChatBubbleOvalLeft } from '@steeze-ui/heroicons';
 	import BlogEditTitle from '$lib/components/input/BlogEditTitle.svelte';
 	import ModalWindow from '$lib/components/atoms/ModalWindow.svelte';
 	import FileUploader from '$lib/components/input/FileUploader.svelte';
-	import type { PageData } from './$types';
-	import BlogEditRow from '$lib/components/input/BlogEditRow.svelte';
 	import { magicFetch } from '$lib/helpers/fetchData';
 	import ActionButton from '$lib/components/forms/ActionButton.svelte';
-	import InputGroup from '$lib/components/input/InputGroup.svelte';
 	import { afterNavigate } from '$app/navigation';
 	import type { Picture as PictureType } from '$lib/interfaces/Picture';
 	import DateInput from '$lib/components/input/DateInput.svelte';
 	import { getContext } from 'svelte';
 	import { availableLocales, localePath } from '$lib/translations';
-	import FormGroup from '$lib/components/input/FormGroup.svelte';
 	import LanguageSelect from '$lib/components/input/LanguageSelect.svelte';
-	import { imageEditorOptions } from '$lib/helpers/transloadit';
 	import Picture from '$lib/components/atoms/Picture.svelte';
-	import ArticlePreview from '$lib/components/post/ArticlePreview.svelte';
 	import AvatarLink from '$lib/components/atoms/AvatarLink.svelte';
 	import LocaleDate from '$lib/components/atoms/LocaleDate.svelte';
 	import BlogQuillEditor from '$lib/components/editor/BlogQuillEditor.svelte';
 	import OptionButtonsGroup from '$lib/components/editor/OptionButtonsGroup.svelte';
-	import { updated } from '$app/stores';
-	import {getQuillInstance} from '$lib/components/editor/quillInstance'
-	   import { createEventDispatcher } from 'svelte';
-	import { setQuillInstance } from '$lib/components/editor/quillInstance'
-	import Block, { BlockEmbed } from 'quill/blots/block';
-	
-	
+	import { getQuillInstance } from '$lib/components/editor/quillInstance';
+	import { createEventDispatcher } from 'svelte';
+	import { setQuillInstance } from '$lib/components/editor/quillInstance';
 
 	export let data;
 
@@ -50,157 +40,59 @@
 		({ body, title, published_at, language, image } = data.post);
 		published_at = published_at?.toISOString().split('T')[0];
 	});
-	
 
 	let showFinalData = false;
 	let editor: any;
 	let quill: any;
-	$: displayPlus = false;
-	$: displayTypeButtons = false;
 	let titleEl: HTMLInputElement;
-	let buttonPosition = { top: 0, left: 0 };
 	let uploadImage: number | undefined;
 	let onPublish = false;
-	let delta;
-	let selectedImage = null;
-	let imageOptionsVisible = false;
-	let imageOptionsPosition = { top: 0, left: 0 };
 
 	const dispatch = createEventDispatcher();
 
-onMount(async () => {
-	const Quill = (await import('quill')).default;
-	const { Figure, ImageBlot, Caption } = await import('$lib/components/editor/CustomBlots');
-	Quill.register(Figure, true);
-	Quill.register(ImageBlot, true);
-	Quill.register(Caption, true);
+	onMount(async () => {
+		const Quill = (await import('quill')).default;
+		const { Figure, ImageBlot, Caption } = await import('$lib/components/editor/CustomBlots');
+		const { onSelectionChange, onTextChange } = await import(
+			'$lib/components/editor/quillHandlers'
+		);
+		const { initializeQuill } = await import('$lib/components/editor/initializeQuill');
 
-	const { initializeQuill } = await import('$lib/components/editor/initializeQuill');
+		Quill.register(Figure, true);
+		Quill.register(ImageBlot, true);
+		Quill.register(Caption, true);
 
-	 quill = initializeQuill(editor);
-	setQuillInstance(quill);
+		quill = initializeQuill(editor);
+		setQuillInstance(quill);
 
-	if (body.ops) {
-		quill.setContents(body.ops);
-	}
+		if (body.ops) {
+			quill.setContents(body.ops);
+		}
 
-	quill.on('text-change', onTextChange);
-	quill.on('selection-change', onSelectionChange);
+		quill.on('text-change', onTextChange);
+		quill.on('selection-change', onSelectionChange);
 
+		const updateButtonPosition = () => {
+			const range = quill.getSelection();
+			dispatch('buttonPlusHandler', range);
+		};
 
+		window.addEventListener('scroll', updateButtonPosition);
+		window.addEventListener('resize', updateButtonPosition);
 
-	quill.on('selection-change', (range, oldRange, source) => {
-		if (!range) return;
-			const [currentLine] = quill.getLine(range.index);
-			const [oldLine] = quill.getLine(oldRange?.index);
-
-	
-
-
-			if (currentLine.parent instanceof Figure) {
-				const currentFigureIndex = quill.getIndex(currentLine.parent)
-				if(oldRange) {
-					const oldFigureIndex = quill.getIndex(oldLine.parent)
-					if(currentFigureIndex != oldFigureIndex ) {
-						oldLine.parent.children.head.selected = false;
-
-					}
-			
-				}
-			
-			}
-
-			if (currentLine.parent instanceof Figure && !currentLine.parent.children.head.selected) {
-				currentLine.parent.children.head.selected = true;
-			}
-
-			
-
-			if (oldLine.parent instanceof Figure) {
-				if (currentLine instanceof Caption) return;
-				if (currentLine instanceof ImageBlot) return;
-				oldLine.parent.children.head.selected = false;
-			}
-	
+		return () => {
+			window.removeEventListener('scroll', updateButtonPosition);
+			window.removeEventListener('resize', updateButtonPosition);
+		};
 	});
-
-	const updateButtonPosition = () => {
-		const range = quill.getSelection();
-		dispatch('buttonPlusHandler', range);
-	};
-
-	window.addEventListener('scroll', updateButtonPosition);
-	window.addEventListener('resize', updateButtonPosition);
-
-	return () => {
-		window.removeEventListener('scroll', updateButtonPosition);
-		window.removeEventListener('resize', updateButtonPosition);
-	};
-});
-
-	function resetPlusButton() {
-		displayPlus = false;
-		buttonPosition = { top: 0, left: 0 };
-	}
-
-
-	function onTextChange(_, oldRange, source) {
-		resetPlusButton()
-
-	}
-
-	function onSelectionChange(range, oldRange, source) {
-		resetPlusButton()
-		buttonPlusHandler(range);
-
-	}
-
 
 	function handleTitleFocus() {
 		titleEl.focus();
 		titleEl.setSelectionRange(titleEl.value.length, titleEl.value.length);
 	}
 
-
-	function buttonPlusHandler(range) {
-		if (range) {
-		
-			if (range.type === 'buttonPlusHandler') {
-				range = range.detail;
-			}
-
-			const quill = getQuillInstance()
-
-			const [line] = quill.getLine(range?.index);
-			if (line && line.domNode.textContent.trim() === '') {
-				showButton(line);
-			} else {
-				hideButton();
-			}
-		}
-	}
-
-	function showButton(line: { domNode: HTMLBodyElement }) {
-		displayTypeButtons = false;
-
-		const rect = line.domNode.getBoundingClientRect();
-		const scrollTop = window.scrollY || document.documentElement.scrollTop;
-		const scrollLeft = window.scrollX || document.documentElement.scrollLeft;
-
-		buttonPosition = {
-			top: rect.top + scrollTop,
-			left: rect.left + scrollLeft - 60
-		};
-		displayPlus = true;
-	}
-
-	function hideButton() {
-		displayPlus = false;
-		displayTypeButtons = false;
-	}
-
 	function getDelta() {
-		const quill = getQuillInstance()
+		const quill = getQuillInstance();
 		body = quill.getContents();
 		showFinalData = true;
 	}
@@ -228,29 +120,9 @@ onMount(async () => {
 
 <div class="  lg:mt-3 min-h-screen flex flex-col lg:mx-12 xl:ml-12 xl:mr-0 mb-12">
 	<BlogEditTitle bind:title bind:titleEl {quill} />
-	<BlogQuillEditor
-		bind:editor
-	
-		bind:body
-		on:handleTitleFocus={handleTitleFocus}
-		on:buttonPlusHandler={buttonPlusHandler}
-		{onTextChange}
-		{onSelectionChange}
-	
-	/>
+	<BlogQuillEditor bind:editor bind:body on:handleTitleFocus={handleTitleFocus} {quill}  />
 
-	<OptionButtonsGroup bind:buttonPosition bind:displayPlus bind:displayTypeButtons />
-	<!-- 
-	{#if imageOptionsVisible}
-		<div
-			class="absolute"
-			style="top: {imageOptionsPosition.top}px; left: {imageOptionsPosition.left}px;"
-		>
-			<button on:click={() => resizeImage('100%')}>Full Width</button>
-			<button on:click={() => resizeImage('80%')}>80%</button>
-			<button on:click={() => resizeImage('50%')}>50%</button>
-		</div>
-	{/if} -->
+	<OptionButtonsGroup />
 </div>
 <div class=" fixed bottom-0 right-0 space-x-2.5 pr-6 text-sm pb-3 bg-white max-xl:w-full text-end">
 	<button class="px-2.5 py-0.5 border" on:click={save}> Save </button>

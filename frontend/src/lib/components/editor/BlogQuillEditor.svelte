@@ -1,11 +1,8 @@
 <script lang="ts">
-	import { onMount, createEventDispatcher } from 'svelte';
+	import { createEventDispatcher } from 'svelte';
 	import { getQuillInstance } from './quillInstance';
-	import Block, { BlockEmbed } from 'quill/blots/block';
 
-	export let editor, quill, body, onTextChange, onSelectionChange;
-	let Quill;
-	let lastChange;
+	export let editor,  body;
 
 	const dispatch = createEventDispatcher();
 
@@ -43,6 +40,7 @@
 	function onBackspaceAtFirstLine(e: KeyboardEvent) {
 		if (e.key === 'Backspace') {
 			e.preventDefault();
+			const quill = getQuillInstance()
 			quill.deleteText(0, 1);
 			dispatch('handleTitleFocus');
 			editor.removeEventListener('keydown', onBackspaceAtFirstLine);
