@@ -3,14 +3,10 @@ import { getQuillInstance } from './quillInstance';
 import { Caption, Figure, ImageBlot } from './CustomBlots';
 import Break from 'quill/blots/break';
 
-
-
 function enterHandler(range, context) {
-
 	const quill = getQuillInstance();
 
 	const [line] = quill.getLeaf(range.index);
-
 
 	if (line.parent instanceof Caption) {
 		if (line?.text?.length === context.offset || line instanceof Break) {
@@ -25,6 +21,12 @@ function enterHandler(range, context) {
 
 function deleteHandler(range, context) {
 	const quill = getQuillInstance();
+
+	if (context.line instanceof Caption && context.empty) {
+		quill.setSelection(range.index - 1, 0);
+		context.line.domNode.classList.add('hidden');
+		return false;
+	}
 
 	if (context.empty && context.line instanceof ImageBlot) {
 		const [line] = quill.getLeaf(range.index + 1);
@@ -53,6 +55,52 @@ const bindings = {
 	delete: {
 		key: 'Backspace',
 		handler: deleteHandler
+	},
+	custom: {
+		key: 'ArrowUp',
+		handler: function (range, context) {
+			if (context.line instanceof Caption) {
+				const quill = getQuillInstance();
+				const imgIndex = quill.getIndex(context.line.prev);
+				console.log(imgIndex);
+				quill.setSelection(imgIndex, 0);
+				return false;
+			}
+
+			// const [line] = quill.getLine(range.index);
+
+			return true;
+		}
+	},
+
+	custom2: {
+		key: 'ArrowRight',
+		handler: function (range, context) {
+			if (context.line instanceof ImageBlot) {
+				const quill = getQuillInstance();
+				const captionIndex = quill.getIndex(context.line.next);
+				console.log(captionIndex);
+				quill.setSelection(captionIndex, 0);
+				return false;
+			}
+
+			return true;
+		}
+	},
+
+	custom3: {
+		key: 'ArrowLeft',
+		handler: function (range, context) {
+			if (context.line instanceof Caption && context.offset === 0) {
+				const quill = getQuillInstance();
+				const imgIndex = quill.getIndex(context.line.prev);
+				console.log(imgIndex);
+				quill.setSelection(imgIndex, 0);
+				return false;
+			}
+
+			return true;
+		}
 	}
 };
 

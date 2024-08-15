@@ -41,6 +41,10 @@ body {
 	@apply xl:w-2/3 mx-auto py-3 bg-zinc-100;
 }
 
+.ql-editor img {
+	caret-color: transparent;
+}
+
 .ql-editor [contenteditable='true'].empty:before {
 	content: attr(placeholder);
 	pointer-events: none;
@@ -49,14 +53,13 @@ body {
 
 
 	white-space: nowrap;
-	font-size: 8;
-	color: red;
+	
 	/* background-color:blue; */
 	
 }
 
 .ql-editor [contenteditable='true'].empty:before {
-	@apply w-1/2 start-1/4;
+	@apply w-1/2 start-1/4 text-sm text-zinc-500;
 }
 
 .ql-editor [contenteditable='true'].empty {

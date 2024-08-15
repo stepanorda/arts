@@ -11,15 +11,16 @@
 			const imageContainerData = {
 				src: 'https://picsum.photos/id/237/600/400',
 				alt: 'Quill Cloud',
-				caption: 'Example', 
 				selected:true
 				
 			};
 
 			const range = quill.getSelection();
 			quill.insertEmbed(range.index, 'image', imageContainerData);
-			quill.setSelection(range.index+1 );
-			quill.format('caption', {selected:true});
+			quill.setSelection(range.index +1);
+			
+			quill.format('caption', {visible:true});
+			quill.setSelection(range.index);
 		
 			quill.insertText(range.index+3,"", 'silent' );
 		});
