@@ -25,6 +25,12 @@
 	import BlogQuillEditor from '$lib/components/editor/BlogQuillEditor.svelte';
 	import OptionButtonsGroup from '$lib/components/editor/OptionButtonsGroup.svelte';
 	import { updated } from '$app/stores';
+	import {getQuillInstance} from '$lib/components/editor/quillInstance'
+	   import { createEventDispatcher } from 'svelte';
+	import { setQuillInstance } from '$lib/components/editor/quillInstance'
+	import Block, { BlockEmbed } from 'quill/blots/block';
+	
+	
 
 	export let data;
 
@@ -59,25 +65,92 @@
 	let selectedImage = null;
 	let imageOptionsVisible = false;
 	let imageOptionsPosition = { top: 0, left: 0 };
-	let Quill;
 
-	onMount(async () => {
-		Quill = (await import('quill')).default;
+	const dispatch = createEventDispatcher();
+
+onMount(async () => {
+	const Quill = (await import('quill')).default;
+	const { Figure, ImageBlot, Caption } = await import('$lib/components/editor/CustomBlots');
+	Quill.register(Figure, true);
+	Quill.register(ImageBlot, true);
+	Quill.register(Caption, true);
+
+	const { initializeQuill } = await import('$lib/components/editor/initializeQuill');
+
+	 quill = initializeQuill(editor);
+	setQuillInstance(quill);
+
+	if (body.ops) {
+		quill.setContents(body.ops);
+	}
+
+	quill.on('text-change', onTextChange);
+	quill.on('selection-change', onSelectionChange);
+
+
+
+	quill.on('selection-change', (range, oldRange, source) => {
+		if (!range) return;
+			const [currentLine] = quill.getLine(range.index);
+			const [oldLine] = quill.getLine(oldRange?.index);
+
+	
+
+
+			if (currentLine.parent instanceof Figure) {
+				const currentFigureIndex = quill.getIndex(currentLine.parent)
+				if(oldRange) {
+					const oldFigureIndex = quill.getIndex(oldLine.parent)
+					if(currentFigureIndex != oldFigureIndex ) {
+						oldLine.parent.children.head.selected = false;
+
+					}
+			
+				}
+			
+			}
+
+			if (currentLine.parent instanceof Figure && !currentLine.parent.children.head.selected) {
+				currentLine.parent.children.head.selected = true;
+			}
+
+			
+
+			if (oldLine.parent instanceof Figure) {
+				if (currentLine instanceof Caption) return;
+				if (currentLine instanceof ImageBlot) return;
+				oldLine.parent.children.head.selected = false;
+			}
+	
 	});
 
-	function onTextChange(_, oldRange, source) {
+	const updateButtonPosition = () => {
+		const range = quill.getSelection();
+		dispatch('buttonPlusHandler', range);
+	};
+
+	window.addEventListener('scroll', updateButtonPosition);
+	window.addEventListener('resize', updateButtonPosition);
+
+	return () => {
+		window.removeEventListener('scroll', updateButtonPosition);
+		window.removeEventListener('resize', updateButtonPosition);
+	};
+});
+
+	function resetPlusButton() {
 		displayPlus = false;
 		buttonPosition = { top: 0, left: 0 };
+	}
 
-		const range = quill.getSelection();
-		if (range) {
-			// addPadding(line);
-		}
+
+	function onTextChange(_, oldRange, source) {
+		resetPlusButton()
+
 	}
 
 	function onSelectionChange(range, oldRange, source) {
-		displayPlus = false;
-		buttonPosition = { top: 0, left: 0 };
+		resetPlusButton()
 		buttonPlusHandler(range);
 
 	}
@@ -88,11 +161,6 @@
 		titleEl.setSelectionRange(titleEl.value.length, titleEl.value.length);
 	}
 
-	function addPadding(line: { domNode: HTMLBodyElement }) {
-		const lineDom = line.domNode;
-		lineDom.style.paddingTop = '10px';
-		lineDom.style.paddingBottom = '10px';
-	}
 
 	function buttonPlusHandler(range) {
 		if (range) {
@@ -100,6 +168,8 @@
 			if (range.type === 'buttonPlusHandler') {
 				range = range.detail;
 			}
+
+			const quill = getQuillInstance()
 
 			const [line] = quill.getLine(range?.index);
 			if (line && line.domNode.textContent.trim() === '') {
@@ -130,6 +200,7 @@
 	}
 
 	function getDelta() {
+		const quill = getQuillInstance()
 		body = quill.getContents();
 		showFinalData = true;
 	}
@@ -159,16 +230,16 @@
 	<BlogEditTitle bind:title bind:titleEl {quill} />
 	<BlogQuillEditor
 		bind:editor
-		bind:quill
+	
 		bind:body
 		on:handleTitleFocus={handleTitleFocus}
 		on:buttonPlusHandler={buttonPlusHandler}
 		{onTextChange}
 		{onSelectionChange}
-		{addPadding}
+	
 	/>
 
-	<OptionButtonsGroup bind:quill bind:buttonPosition bind:displayPlus bind:displayTypeButtons />
+	<OptionButtonsGroup bind:buttonPosition bind:displayPlus bind:displayTypeButtons />
 	<!-- 
 	{#if imageOptionsVisible}
 		<div

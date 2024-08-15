@@ -3,8 +3,9 @@
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { PlusCircle } from '@steeze-ui/heroicons';
 	import AddImageButtton from './AddImageButtton.svelte';
+	    import {getQuillInstance} from '$lib/components/editor/quillInstance'
 
-	export let buttonPosition, displayPlus, displayTypeButtons: boolean, quill;
+	export let buttonPosition, displayPlus, displayTypeButtons: boolean;
 
 	onMount(async () => {
 		addImageTest('#image-button', () => {
@@ -14,6 +15,8 @@
 				selected:true
 				
 			};
+
+			const quill = getQuillInstance()
 
 			const range = quill.getSelection();
 			quill.insertEmbed(range.index, 'image', imageContainerData);
