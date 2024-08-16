@@ -2,11 +2,19 @@ import Quill from 'quill';
 import { getQuillInstance } from './quillInstance';
 import { Caption, Figure, ImageBlot } from './CustomBlots';
 import Break from 'quill/blots/break';
+import { buttonPlusHandler } from '$lib/components/editor/quillHandlers';
 
 function enterHandler(range, context) {
 	const quill = getQuillInstance();
 
 	const [line] = quill.getLeaf(range.index);
+
+	if (context.empty || context.suffix === '') {
+		quill.insertText(range.index + 1, '\n');
+		quill.setSelection(range.index + 1, 0);
+		buttonPlusHandler({ index: range.index + 1 });
+		return false;
+	}
 
 	// ------- HANDLE IN FIGURE  -----
 	if (line.parent instanceof Caption) {
@@ -16,9 +24,6 @@ function enterHandler(range, context) {
 		}
 		return false;
 	}
-
-
-
 
 	return true;
 }
@@ -71,8 +76,13 @@ const bindings = {
 				return false;
 			}
 
-	
-			console.log(range, context)
+			// if(range.index === 0) {
+			// 	const quill = getQuillInstance();
+			// 	quill.blur();
+
+			// }
+
+			console.log(range, context);
 
 			// const [line] = quill.getLine(range.index);
 

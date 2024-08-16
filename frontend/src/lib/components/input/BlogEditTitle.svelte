@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
+
 	export let title: string, titleEl: HTMLInputElement, quill;
 
 	function autoGrow(textArea) {
@@ -13,6 +14,9 @@
 		titleEl.focus();
 	});
 
+
+	
+
 	function titleKeyDown(e: KeyboardEvent) {
 		if (e.key === 'Enter') {
 			e.preventDefault();
@@ -22,8 +26,8 @@
 			if (editorContent.length() === 1 && editorContent.ops[0].insert.trim() === '') {
 				quill.focus();
 			} else {
-				quill.insertText(0, '\n');
-				quill.setSelection(0);
+				quill.insertText(0, '\n', );
+				quill.setSelection(0,0, 'user');
 				quill.focus();
 			}
 		}

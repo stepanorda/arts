@@ -18,9 +18,8 @@
 	import LocaleDate from '$lib/components/atoms/LocaleDate.svelte';
 	import BlogQuillEditor from '$lib/components/editor/BlogQuillEditor.svelte';
 	import OptionButtonsGroup from '$lib/components/editor/OptionButtonsGroup.svelte';
-	import { getQuillInstance } from '$lib/components/editor/quillInstance';
-	import { createEventDispatcher } from 'svelte';
-	import { setQuillInstance } from '$lib/components/editor/quillInstance';
+	import { getQuillInstance, setQuillInstance } from '$lib/components/editor/quillInstance';
+
 
 	export let data;
 
@@ -48,12 +47,13 @@
 	let uploadImage: number | undefined;
 	let onPublish = false;
 
-	const dispatch = createEventDispatcher();
+
+	$:console.log(quill?.hasFocus())
 
 	onMount(async () => {
 		const Quill = (await import('quill')).default;
 		const { Figure, ImageBlot, Caption } = await import('$lib/components/editor/CustomBlots');
-		const { onSelectionChange, onTextChange } = await import(
+		const { onSelectionChange, onTextChange, buttonPlusHandler } = await import(
 			'$lib/components/editor/quillHandlers'
 		);
 		const { initializeQuill } = await import('$lib/components/editor/initializeQuill');
@@ -74,14 +74,13 @@
 
 		const updateButtonPosition = () => {
 			const range = quill.getSelection();
-			dispatch('buttonPlusHandler', range);
+			buttonPlusHandler(range);
 		};
-
 		window.addEventListener('scroll', updateButtonPosition);
 		window.addEventListener('resize', updateButtonPosition);
 
 		return () => {
-			window.removeEventListener('scroll', updateButtonPosition);
+			window.addEventListener('scroll', updateButtonPosition);
 			window.removeEventListener('resize', updateButtonPosition);
 		};
 	});
@@ -120,7 +119,7 @@
 
 <div class="  lg:mt-3 min-h-screen flex flex-col lg:mx-12 xl:ml-12 xl:mr-0 mb-12">
 	<BlogEditTitle bind:title bind:titleEl {quill} />
-	<BlogQuillEditor bind:editor bind:body on:handleTitleFocus={handleTitleFocus} {quill}  />
+	<BlogQuillEditor bind:editor bind:body on:handleTitleFocus={handleTitleFocus} {quill} />
 
 	<OptionButtonsGroup />
 </div>
