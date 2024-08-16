@@ -1,13 +1,23 @@
 import { getQuillInstance } from './quillInstance';
 import { Caption, Figure, ImageBlot } from './CustomBlots';
 import { buttonPosition, displayPlus, displayTypeButtons } from '$lib/stores/plusButtonEditor';
+import { get } from 'svelte/store';
 
-export function onTextChange(_, oldRange, source) {
-	resetPlusButton();
+export function onTextChange(delta, oldDelta, source) {
+	const quill = getQuillInstance();
+	const range = quill.getSelection();
+
+	if (!range) return;
+	buttonPlusHandler(range);
+
+	const isNewlineInserted = delta?.ops?.[1]?.insert === '\n';
+
+	if (isNewlineInserted) {
+		buttonPlusHandler({ index: range.index + 1 });
+	}
 }
 
 export function onSelectionChange(range, oldRange, source) {
-	resetPlusButton();
 	if (!range) return;
 	buttonPlusHandler(range);
 
@@ -41,12 +51,7 @@ function handleFigureSelections(range, oldRange) {
 	}
 }
 
-function resetPlusButton() {
-	displayPlus.set(false);
-	buttonPosition.set({ top: 0, left: 0 });
-}
-
-function buttonPlusHandler(range) {
+export function buttonPlusHandler(range) {
 	if (range.type === 'buttonPlusHandler') {
 		range = range.detail;
 	}
@@ -54,6 +59,7 @@ function buttonPlusHandler(range) {
 	const quill = getQuillInstance();
 
 	const [line] = quill.getLine(range?.index);
+
 	if (line && line.domNode.textContent.trim() === '') {
 		showButton(line);
 	} else {

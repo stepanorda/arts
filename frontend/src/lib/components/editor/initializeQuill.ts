@@ -8,6 +8,7 @@ function enterHandler(range, context) {
 
 	const [line] = quill.getLeaf(range.index);
 
+	// ------- HANDLE IN FIGURE  -----
 	if (line.parent instanceof Caption) {
 		if (line?.text?.length === context.offset || line instanceof Break) {
 			quill.setSelection(range.index + 1, 0);
@@ -15,6 +16,9 @@ function enterHandler(range, context) {
 		}
 		return false;
 	}
+
+
+
 
 	return true;
 }
@@ -66,6 +70,9 @@ const bindings = {
 				quill.setSelection(imgIndex, 0);
 				return false;
 			}
+
+	
+			console.log(range, context)
 
 			// const [line] = quill.getLine(range.index);
 

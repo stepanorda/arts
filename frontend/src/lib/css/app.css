@@ -54,7 +54,6 @@ body {
 
 	white-space: nowrap;
 	
-	/* background-color:blue; */
 	
 }
 
@@ -62,9 +61,14 @@ body {
 	@apply w-1/2 start-1/4 text-sm text-zinc-500;
 }
 
+.ql-editor.ql-blank:before {
+	@apply xl:w-2/3 mx-auto p-3 text-zinc-500 not-italic ;
+}
+
+
+
 .ql-editor [contenteditable='true'].empty {
 	position: relative;
-	/* background-color:green; */
 }
 
 .ql-container.ql-bubble:not(.ql-disabled) a:not(.ql-close) {

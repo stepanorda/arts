@@ -1,17 +1,19 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
 	import { getQuillInstance } from './quillInstance';
+	// import {buttonPlusHandler} from '$lib/components/editor/quillHandlers'
 
 	export let editor,  body;
 
 	const dispatch = createEventDispatcher();
 
 	function onKeydownEditor(e: KeyboardEvent) {
-		if (['Enter', 'Backspace', 'Delete'].includes(e.key)) {
-			const quill = getQuillInstance()
-			const range = quill.getSelection();
-			dispatch('buttonPlusHandler', range);
-		}
+		// if (['Enter', 'Backspace', 'Delete'].includes(e.key)) {
+		// 	const quill = getQuillInstance()
+		// 	const range = quill.getSelection();
+		// 	dispatch('buttonPlusHandler', range);
+		// 	// buttonPlusHandler(range)
+		// }
 
 		if (e.key === 'ArrowUp') {
 			const quill = getQuillInstance()
@@ -54,6 +56,6 @@
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
 	bind:this={editor}
-	on:keydown={onKeydownEditor}
+	
 	class="h-min text-xl font-serif margin-0"
 />
