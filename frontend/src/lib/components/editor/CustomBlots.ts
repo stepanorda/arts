@@ -23,7 +23,7 @@ class ImageBlot extends BlockEmbed {
 	static create(value) {
 		let node = super.create();
 		node.setAttribute('src', value.src);
-		node.setAttribute('class', 'hover:ring-4 hover:ring-green-500 w-full h-auto');
+		node.setAttribute('class', ' w-full h-auto');
 		node.value = value;
 		return node;
 	}
@@ -58,7 +58,6 @@ class ImageBlot extends BlockEmbed {
 
 	select() {
 		this.next?.domNode.classList.remove('hidden');
-		this.domNode.classList.add('ring-4');
 		this.domNode.classList.add('ring-green-600');
 
 		const toolbar = this.getToolbar();
@@ -73,7 +72,7 @@ class ImageBlot extends BlockEmbed {
 		if (this.next?.domNode.textContent.trim() === '') {
 			this.next?.domNode.classList.add('hidden');
 		}
-		this.domNode.classList.remove('ring-4');
+
 		this.domNode.classList.remove('ring-green-600');
 
 
@@ -111,7 +110,7 @@ class Caption extends Block {
 	static create(value) {
 		let node = super.create();
 		node.setAttribute('contenteditable', 'true');
-		node.setAttribute('placeholder', 'Type Something...');
+		node.setAttribute('placeholder', 'Type caption for image (optional)');
 		node.value = value;
 
 		return node;

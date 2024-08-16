@@ -31,6 +31,8 @@ function enterHandler(range, context) {
 function deleteHandler(range, context) {
 	const quill = getQuillInstance();
 
+
+	
 	if (context.line instanceof Caption && context.empty) {
 		quill.setSelection(range.index - 1, 0);
 		context.line.domNode.classList.add('hidden');
@@ -48,7 +50,7 @@ function deleteHandler(range, context) {
 	}
 
 	if (context.empty && context.line.prev instanceof Figure) {
-		context.line.prev.children.head.select();
+		context.line.prev.children.head.selected = true;
 		quill.setSelection(range.index - 1);
 		return false;
 	} else {
@@ -65,49 +67,7 @@ const bindings = {
 		key: 'Backspace',
 		handler: deleteHandler
 	},
-	custom: {
-		key: 'ArrowUp',
-		handler: function (range, context) {
-			if (context.line instanceof Caption) {
-				const quill = getQuillInstance();
-				const imgIndex = quill.getIndex(context.line.prev);
-				quill.setSelection(imgIndex, 0);
-				return false;
-			}
 
-			return true;
-		}
-	},
-
-	custom2: {
-		key: 'ArrowRight',
-		handler: function (range, context) {
-			if (context.line instanceof ImageBlot) {
-				const quill = getQuillInstance();
-				const captionIndex = quill.getIndex(context.line.next);
-				console.log(captionIndex);
-				quill.setSelection(captionIndex, 0);
-				return false;
-			}
-
-			return true;
-		}
-	},
-
-	custom3: {
-		key: 'ArrowLeft',
-		handler: function (range, context) {
-			if (context.line instanceof Caption && context.offset === 0) {
-				const quill = getQuillInstance();
-				const imgIndex = quill.getIndex(context.line.prev);
-				console.log(imgIndex);
-				quill.setSelection(imgIndex, 0);
-				return false;
-			}
-
-			return true;
-		}
-	}
 };
 
 const toolbarOptions = [

@@ -9,12 +9,12 @@ body {
 }
 
 .ql-bubble .ql-editor blockquote {
-	@apply dark:border-zinc-600;
+	@apply dark:border-zinc-600 p-3;
 
 	border-left: 3px solid black;
 	margin-bottom: 0px;
 	margin-top: 0px;
-	padding-left: 16px;
+	padding-left: 20px;
 }
 
 
@@ -30,18 +30,20 @@ body {
 	@apply xl:w-2/3 mx-auto;
 }
 
+
 .ql-editor figcaption {
-	@apply text-blue-500 py-3 text-center;
+	@apply text-zinc-500 py-3 text-center text-sm font-light;
 }
 
 .ql-editor p {
-	@apply xl:w-2/3 mx-auto py-3;
+	@apply xl:w-2/3 mx-auto py-3 text-xl;
 }
 .ql-editor figure {
-	@apply xl:w-2/3 mx-auto py-3 bg-zinc-100;
+	@apply xl:w-2/3 mx-auto py-3;
 }
 
 .ql-editor img {
+	@apply hover:ring-4 hover:ring-green-500;
 	caret-color: transparent;
 }
 
