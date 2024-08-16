@@ -1,6 +1,7 @@
 import { getQuillInstance } from './quillInstance';
 import { Caption, Figure, ImageBlot } from './CustomBlots';
 import { buttonPosition, displayPlus, displayTypeButtons } from '$lib/stores/plusButtonEditor';
+import Block from 'quill/blots/block';
 
 export function onTextChange(delta, oldDelta, source) {
 	const quill = getQuillInstance();
@@ -12,6 +13,7 @@ export function onTextChange(delta, oldDelta, source) {
 
 export function onSelectionChange(range, oldRange, source) {
 	if (!range) return;
+
 	// --- need improvements ---
 	buttonPlusHandler(range);
 	// -----------------------
@@ -23,9 +25,13 @@ export function buttonPlusHandler(range) {
 	const quill = getQuillInstance();
 
 	const [line] = quill.getLine(range?.index);
-	console.log('buttonPlusHandler', line);
 
-	if (line && line.domNode.textContent.trim() === '') {
+	if (
+		line &&
+		line.domNode.textContent.trim() === '' &&
+		line instanceof Block &&
+		!(line instanceof Caption)
+	) {
 		showButton(line);
 	} else {
 		hideButton();
@@ -46,7 +52,7 @@ function showButton(line: { domNode: HTMLBodyElement }) {
 	displayPlus.set(true);
 }
 
-function hideButton() {
+export function hideButton() {
 	displayPlus.set(false);
 	displayTypeButtons.set(false);
 }

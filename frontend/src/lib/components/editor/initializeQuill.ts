@@ -71,20 +71,9 @@ const bindings = {
 			if (context.line instanceof Caption) {
 				const quill = getQuillInstance();
 				const imgIndex = quill.getIndex(context.line.prev);
-				console.log(imgIndex);
 				quill.setSelection(imgIndex, 0);
 				return false;
 			}
-
-			// if(range.index === 0) {
-			// 	const quill = getQuillInstance();
-			// 	quill.blur();
-
-			// }
-
-			console.log(range, context);
-
-			// const [line] = quill.getLine(range.index);
 
 			return true;
 		}

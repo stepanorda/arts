@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-
+	import { displayPlus, displayTypeButtons } from '$lib/stores/plusButtonEditor';
+	
 
 	export let title: string, titleEl: HTMLInputElement, quill;
 
@@ -14,9 +15,6 @@
 		titleEl.focus();
 	});
 
-
-	
-
 	function titleKeyDown(e: KeyboardEvent) {
 		if (e.key === 'Enter') {
 			e.preventDefault();
@@ -26,8 +24,8 @@
 			if (editorContent.length() === 1 && editorContent.ops[0].insert.trim() === '') {
 				quill.focus();
 			} else {
-				quill.insertText(0, '\n', );
-				quill.setSelection(0,0, 'user');
+				quill.insertText(0, '\n');
+				quill.setSelection(0, 0, 'user');
 				quill.focus();
 			}
 		}
@@ -49,6 +47,10 @@
 	<textarea
 		on:keydown={titleKeyDown}
 		on:input={() => autoGrow(titleEl)}
+		on:focus={() => {
+			displayPlus.set(false);
+			displayTypeButtons.set(false);
+		}}
 		class="border-0 p-3 focus:ring-0 text-xl sm:text-2xl lg:text-3xl w-full font-semibold font-serif placeholder:font-normal sm:max-xl:placeholder:text-center dark:bg-black dark:placeholder:text-zinc-400"
 		name="title"
 		placeholder="Title"
