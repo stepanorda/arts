@@ -61,11 +61,11 @@ class ImageBlot extends BlockEmbed {
 		this.domNode.classList.add('ring-green-600');
 
 		const toolbar = this.getToolbar();
-        toolbar.controls.forEach(([format, button]) => {
-            if (['header', 'blockquote', 'list'].includes(format)) {
-                button.style.display = 'none';
-            }
-        });
+		toolbar.controls.forEach(([format, button]) => {
+			if (['header', 'blockquote', 'list'].includes(format)) {
+				button.style.display = 'none';
+			}
+		});
 	}
 
 	unselect() {
@@ -75,18 +75,16 @@ class ImageBlot extends BlockEmbed {
 
 		this.domNode.classList.remove('ring-green-600');
 
-
-
 		const toolbar = this.getToolbar();
-        toolbar.controls.forEach(([, button]) => {
-            button.style.display = '';
-        });
+		toolbar.controls.forEach(([, button]) => {
+			button.style.display = '';
+		});
 	}
 
 	getToolbar() {
-        const quill = getQuillInstance();
-        return quill.getModule('toolbar');
-    }
+		const quill = getQuillInstance();
+		return quill.getModule('toolbar');
+	}
 
 	static value(node) {
 		return {

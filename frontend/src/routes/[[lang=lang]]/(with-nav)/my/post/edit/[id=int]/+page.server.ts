@@ -15,6 +15,6 @@ export const load = (async ({ params, parent }) => {
 		});
 	}
 	return {
-		post: postMap(postRaw),
+		post: postMap(postRaw)
 	};
 }) satisfies PageServerLoad;

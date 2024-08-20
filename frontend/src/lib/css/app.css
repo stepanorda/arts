@@ -17,7 +17,6 @@ body {
 	padding-left: 20px;
 }
 
-
 .ql-editor ol,
 .ql-editor pre,
 .ql-editor blockquote,
@@ -30,16 +29,15 @@ body {
 	@apply xl:w-2/3 mx-auto;
 }
 
-
 .ql-editor figcaption {
-	@apply text-zinc-500 py-3 text-center text-sm font-light;
+	@apply text-zinc-500 pt-3 text-center text-sm font-light;
 }
 
 .ql-editor p {
 	@apply xl:w-2/3 mx-auto py-3 text-xl;
 }
 .ql-editor figure {
-	@apply xl:w-2/3 mx-auto py-3;
+	@apply xl:w-2/3 mx-auto py-7;
 }
 
 .ql-editor img {
@@ -53,10 +51,7 @@ body {
 	display: block; /* For Firefox block - need to be checked */
 	position: absolute;
 
-
 	white-space: nowrap;
-	
-	
 }
 
 .ql-editor [contenteditable='true'].empty:before {
@@ -64,10 +59,8 @@ body {
 }
 
 .ql-editor.ql-blank:before {
-	@apply xl:w-2/3 mx-auto p-3 text-zinc-500 not-italic ;
+	@apply xl:w-2/3 mx-auto p-3 text-zinc-500 not-italic;
 }
-
-
 
 .ql-editor [contenteditable='true'].empty {
 	position: relative;

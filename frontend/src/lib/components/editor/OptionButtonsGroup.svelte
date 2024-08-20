@@ -34,7 +34,6 @@
 	function toggleTypeButtons() {
 		displayTypeButtons.set(!$displayTypeButtons);
 	}
-
 </script>
 
 <div

@@ -1,10 +1,9 @@
-
 let quillInstance = null;
 
 export function setQuillInstance(instance) {
-    quillInstance = instance;
+	quillInstance = instance;
 }
 
 export function getQuillInstance() {
-    return quillInstance;
+	return quillInstance;
 }

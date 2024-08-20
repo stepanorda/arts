@@ -31,8 +31,6 @@ function enterHandler(range, context) {
 function deleteHandler(range, context) {
 	const quill = getQuillInstance();
 
-
-	
 	if (context.line instanceof Caption && context.empty) {
 		quill.setSelection(range.index - 1, 0);
 		context.line.domNode.classList.add('hidden');
@@ -66,8 +64,7 @@ const bindings = {
 	delete: {
 		key: 'Backspace',
 		handler: deleteHandler
-	},
-
+	}
 };
 
 const toolbarOptions = [

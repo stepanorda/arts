@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { displayPlus, displayTypeButtons } from '$lib/stores/plusButtonEditor';
-	
 
 	export let title: string, titleEl: HTMLInputElement, quill;
 
