@@ -1,118 +1,110 @@
 <script lang="ts">
-	import type { PageData } from './$types';
-	import BlogEditRow from '$lib/components/input/BlogEditRow.svelte';
+	import { onMount } from 'svelte';
+	import { Icon } from '@steeze-ui/svelte-icon';
+	import { Heart, ChatBubbleOvalLeft } from '@steeze-ui/heroicons';
+	import BlogEditTitle from '$lib/components/input/BlogEditTitle.svelte';
 	import ModalWindow from '$lib/components/atoms/ModalWindow.svelte';
 	import FileUploader from '$lib/components/input/FileUploader.svelte';
 	import { magicFetch } from '$lib/helpers/fetchData';
 	import ActionButton from '$lib/components/forms/ActionButton.svelte';
-	import InputGroup from '$lib/components/input/InputGroup.svelte';
 	import { afterNavigate } from '$app/navigation';
 	import type { Picture as PictureType } from '$lib/interfaces/Picture';
 	import DateInput from '$lib/components/input/DateInput.svelte';
 	import { getContext } from 'svelte';
 	import { availableLocales, localePath } from '$lib/translations';
-	import FormGroup from '$lib/components/input/FormGroup.svelte';
 	import LanguageSelect from '$lib/components/input/LanguageSelect.svelte';
-	import { Icon } from '@steeze-ui/svelte-icon';
-	import { Photo } from '@steeze-ui/heroicons';
-	import { imageEditorOptions } from '$lib/helpers/transloadit';
 	import Picture from '$lib/components/atoms/Picture.svelte';
+	import AvatarLink from '$lib/components/atoms/AvatarLink.svelte';
+	import LocaleDate from '$lib/components/atoms/LocaleDate.svelte';
+	import BlogQuillEditor from '$lib/components/editor/BlogQuillEditor.svelte';
+	import OptionButtonsGroup from '$lib/components/editor/OptionButtonsGroup.svelte';
+	import { getQuillInstance, setQuillInstance } from '$lib/components/editor/quillInstance';
+
+	export let data;
 
 	let t = getContext('t');
 	let locale = getContext('locale');
-
-	export let data: PageData;
 	const maxDate = new Date(Date.now() + 60 * 60 * 24 * 60 * 1000).toISOString().split('T')[0];
-	const defaultBlock = {
-		type: 'text',
-		text: ''
-	};
-	let images: Map<string, PictureType>,
-		body = [],
+
+	let body = [],
 		title: string,
 		published_at: Date,
 		language: availableLocales,
 		image: PictureType | null;
 
-	({ body, images, title, published_at, language, image } = data.post);
+	({ body, title, published_at, language, image } = data.post);
 	published_at = published_at?.toISOString().split('T')[0];
 	afterNavigate(() => {
-		({ body, images, title, published_at, language, image } = data.post);
+		({ body, title, published_at, language, image } = data.post);
 		published_at = published_at?.toISOString().split('T')[0];
 	});
 
-	let focus: number | undefined = undefined;
-	let titleElement: HTMLInputElement;
+	let showFinalData = false;
+	let editor: any;
+	let quill: any;
+	let titleEl: HTMLInputElement;
 	let uploadImage: number | undefined;
-	let mainImageUploadModal = false;
-	let errors;
-	$: if (focus === -1) {
-		titleElement?.focus();
-	}
+	let onPublish = false;
 
-	function splitBlock(e: CustomEvent, curIndex: number, nextIndex: number) {
-		const { before, after } = e.detail;
+	onMount(async () => {
+		const Quill = (await import('quill')).default;
+		const { Figure, ImageBlot, Caption } = await import('$lib/components/editor/CustomBlots');
+		const { onSelectionChange, onTextChange, buttonPlusHandler } = await import(
+			'$lib/components/editor/quillHandlers'
+		);
+		const { initializeQuill } = await import('$lib/components/editor/initializeQuill');
 
-		body[curIndex].text = before;
+		Quill.register(Figure, true);
+		Quill.register(ImageBlot, true);
+		Quill.register(Caption, true);
 
-		body = body.toSpliced(nextIndex, 0, { type: 'text', text: after });
+		quill = initializeQuill(editor);
+		setQuillInstance(quill);
 
-		moveFocus(nextIndex);
-	}
-
-	function addBlock(index: number | undefined) {
-		index ??= body.length;
-		body = body.toSpliced(index, 0, { ...defaultBlock });
-		moveFocus(index + 1);
-	}
-
-	function removeBlock(index: number) {
-		body = body.toSpliced(index, 1);
-		moveFocus(index || -1);
-	}
-
-	function moveFocus(index: number | undefined) {
-		index ??= body.length - 1;
-		focus = index || -1;
-	}
-
-	function titleKeyDown(e: KeyboardEvent) {
-		if (e.key === 'Enter') {
-			e.preventDefault();
-			addBlock(0);
+		if (body.ops) {
+			quill.setContents(body.ops);
 		}
-		if (e.key === 'ArrowDown') {
-			if (body.length) {
-				moveFocus(1);
-			} else {
-				addBlock(0);
-			}
-		}
+
+		quill.on('text-change', onTextChange);
+		quill.on('selection-change', onSelectionChange);
+
+		const updateButtonPosition = () => {
+			const range = quill.getSelection();
+			buttonPlusHandler(range);
+		};
+		window.addEventListener('scroll', updateButtonPosition);
+		window.addEventListener('resize', updateButtonPosition);
+
+		return () => {
+			window.addEventListener('scroll', updateButtonPosition);
+			window.removeEventListener('resize', updateButtonPosition);
+		};
+	});
+
+	function handleTitleFocus() {
+		titleEl.focus();
+		titleEl.setSelectionRange(titleEl.value.length, titleEl.value.length);
 	}
 
-	async function uploadComplete({ detail }) {
-		const image = `temp/${detail[0].file}`;
-		const result = await magicFetch('POST', '/api/image', {
-			imageable_id: data.post.id.toString(),
-			imageable_type: 'post',
-			folder: 'posts',
-			images: [image]
+	let previewText;
+	let previewImage;
+
+	function getDelta() {
+		const quill = getQuillInstance();
+		body = quill.getContents();
+		previewImage = body.ops.find((obj) => {
+			return obj.insert.image;
+			// console.log(obj.insert.image)
 		});
-		if (Array.isArray(result) && uploadImage !== undefined) {
-			body[uploadImage] = {
-				type: 'image',
-				image_id: result[0].id
-			};
-			images.set(result[0].id.toString(), result[0]);
-			// Trigger svelte update
-			images = images;
-			body = body;
-			addBlock(undefined);
-		}
-		uploadImage = undefined;
+		previewText = body.ops.find((obj) => {
+			return typeof obj.insert === 'string';
+		});
+		console.log(previewText);
+		showFinalData = true;
 	}
 
 	async function save() {
+		getDelta();
 		const json = await magicFetch('PUT', localePath($locale, `/api/post/${data.post.id}`), {
 			title,
 			body,
@@ -123,89 +115,135 @@
 		errors = json?.errors;
 	}
 
-	async function mainImageUploaded({ detail }) {
-		const tmpImage = `temp/${detail[0].file}`;
-		const result = await magicFetch('POST', '/api/image', {
-			imageable_id: data.post.id.toString(),
-			imageable_type: 'post',
-			folder: 'posts',
-			images: [tmpImage]
-		});
-		image = result[0];
-		mainImageUploadModal = false;
-	}
+	// async function mainImageUploaded({ detail }) {
+	// 	const tmpImage = `temp/${detail[0].file}`;
+	// 	const result = await magicFetch('POST', '/api/image', {
+	// 		imageable_id: data.post.id.toString(),
+	// 		imageable_type: 'post',
+	// 		folder: 'posts',
+	// 		images: [tmpImage]
+	// 	});
+	// 	image = result[0];
+	// 	mainImageUploadModal = false;
+	// }
 </script>
 
-<div class=" lg:mt-3 min-h-screen flex flex-col lg:mx-12 xl:ml-6 xl:mr-0">
-	<InputGroup
-		error={errors?.title}
-		class="relative lg:pr-3 md:px-16 lg:px-12 lg:pl-16 pt-3 max-md:ml-9  mb-9   {focus === -1
-			? ' border-y-0 border-l-0 border-black  border-2 ring-gray-300'
-			: ''}"
+<button type="button" class="  text-center" on:click={getDelta}>Save </button>
+
+{#if showFinalData && body}
+	`
+	<div>${JSON.stringify(body, null, 2)}</div>
+	`
+{/if}
+
+<div class="  lg:mt-3 min-h-screen flex flex-col lg:mx-12 xl:ml-12 xl:mr-0 mb-12">
+	<BlogEditTitle bind:title bind:titleEl {quill} />
+	<BlogQuillEditor bind:editor bind:body on:handleTitleFocus={handleTitleFocus} {quill} />
+
+	<OptionButtonsGroup />
+</div>
+<div class=" fixed bottom-0 right-0 space-x-2.5 pr-6 text-sm pb-3 bg-white max-xl:w-full text-end">
+	<button class="px-2.5 py-0.5 border" on:click={save}> Save </button>
+	<button
+		class="px-2.5 py-0.5 bg-emerald-600 text-white"
+		on:click={() => {
+			save(), (onPublish = true);
+		}}>Publish</button
 	>
-		<!-- svelte-ignore a11y-positive-tabindex -->
-		<textarea
-			tabindex="1"
-			on:focusin={() => (focus = -1)}
-			bind:this={titleElement}
-			on:keydown={titleKeyDown}
-			class="border-0 focus:ring-0 p-0 text-xl sm:text-2xl lg:text-3xl w-full font-semibold font-serif placeholder:font-normal sm:max-xl:placeholder:text-center dark:bg-black dark:placeholder:text-zinc-400"
-			name="title"
-			placeholder={$t('my.blog.create_title')}
-			bind:value={title}
-		/>
-		<div class="absolute left-0 top-3">
-			<button on:click={() => (mainImageUploadModal = true)}>
-				{#if image}
-					<Picture photo={image} class="w-10 h-10" />
-				{:else}
-					<Icon src={Photo} class="w-10 h-10" />
-				{/if}
-			</button>
-		</div>
-	</InputGroup>
-
-	<div class="space-y-9 mb-9 md:max-lg:mr-16 max-md:ml-2">
-		{#each body as row, index}
-			{@const tabindex = index + 1}
-			<BlogEditRow
-				on:moveUp={() => moveFocus(tabindex - 1)}
-				on:moveDown={() => moveFocus(tabindex + 1)}
-				on:addBlock={() => addBlock(tabindex)}
-				on:splitBlock={(e) => splitBlock(e, index, tabindex)}
-				on:removeBlock={() => removeBlock(index)}
-				on:uploadImage={() => (uploadImage = index)}
-				{tabindex}
-				bind:row
-				{images}
-				bind:focus
-			/>
-		{/each}
-	</div>
-
-	<FormGroup h1={$t('my.add_work_page.ready_to_publish')} class="mt-auto  xl:ml-16">
-		<div class=" max-sm:space-y-6 max-md:flex max-md:flex-col md:columns-3">
-			<DateInput bind:value={published_at} min={published_at} max={maxDate} name="published_at" />
-			<LanguageSelect bind:value={language} />
-			<ActionButton class="block w-full bg-blue-600 hover:bg-blue-500" on:click={save}>
-				{$t('global.buttons.save')}
-			</ActionButton>
-		</div>
-	</FormGroup>
 </div>
 
-<ModalWindow
+<!-- <div class="ql-toolbar"></div> -->
+
+<!-- <ModalWindow
 	open={uploadImage !== undefined}
 	on:close={() => (uploadImage = undefined)}
 	class="w-auto"
 >
 	<FileUploader maxNumberOfFiles={1} on:complete={uploadComplete} />
-</ModalWindow>
+</ModalWindow> -->
 
 <ModalWindow
-	open={mainImageUploadModal}
-	on:close={() => (mainImageUploadModal = false)}
-	class="w-auto"
+	open={onPublish}
+	on:close={() => (onPublish = !onPublish)}
+	class="w-3/4  bg-zinc-50   my-12"
 >
-	<FileUploader maxNumberOfFiles={1} {imageEditorOptions} on:complete={mainImageUploaded} />
+	<div class="flex flex-col items-center gap-12 p-16">
+		<div class="w-full">
+			<div class="text-xl font-bold text-start pb-6 rounded-sm mb-9 border-b">Story preview</div>
+			<div class="py-6 border-b">
+				<div class="flex items-center gap-3 mb-4 text-sm">
+					<AvatarLink user={data.post.owner} withName size={'w-6 h-6'} nameStyles="font-medium" />
+
+					<div class="flex items-center gap-2 text-zinc-500 dark:text-zinc-100 text-xs">
+						<div class="h-0.5 w-0.5 bg-gray-400 rounded-full" />
+						<LocaleDate date={data.post?.published_at} />
+					</div>
+				</div>
+				<div>
+					<div class="flex overflow-hidden items-start justify-between gap-3 sm:gap-6 md:gap-12">
+						<div>
+							<div class="line-clamp-3 sm:line-clamp-5">
+								<h3 class="text-xl font-semibold leading-6">
+									{title}
+								</h3>
+								<!-- eslint-disable svelte/no-at-html-tags -->
+								<p class=" mt-2 xl:mt-3 text-sm leading-6 text-gray-600 dark:text-zinc-300">
+									{@html previewText.insert}
+								</p>
+							</div>
+							<div class="flex items-center justify-between mt-6">
+								<div class="flex items-center gap-2 text-xs text-gray-500 dark:text-white">
+									<div class="flex items-center gap-1">
+										<Icon src={Heart} class="h-4 w-4 stroke-1" />
+										<span>1</span>
+									</div>
+									<div class="flex items-center gap-1">
+										<Icon src={ChatBubbleOvalLeft} class="h-4 w-4 stroke-1" />
+										<span>1</span>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div
+							class="relative w-20 h-20 sm:w-24 sm:h-32 md:w-56 aspect-1 shrink-0 bg-zinc-200 group/changeimage"
+						>
+							<div
+								class="bg-red-500/10 absolute w-full h-full invisible group-hover/changeimage:visible transition-all"
+							>
+								<div class="flex justify-center items-center w-full h-full">
+									<button class="flex bg-green-300 py-1 px-3 border rounded-full">
+										Change preview image</button
+									>
+								</div>
+							</div>
+							{#if previewImage}
+								<img alt="!!!!" class="object-cover aspect-1" src={previewImage.insert.image.src} />
+							{:else}
+								<div class="w-full h-full flex items-center justify-center p-6">
+									Include a high-quality image in your story to make it more inviting to readers.
+								</div>
+							{/if}
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="mt-auto w-full">
+			<div class=" max-sm:space-y-6 max-md:flex max-md:flex-col md:columns-3">
+				<DateInput bind:value={published_at} min={published_at} max={maxDate} name="published_at" />
+				<!-- <button
+					class="block w-full border border-zinc-600 text-black rounded-sm px-3 py-2 text-sm font-semibold shadow-sm"
+				>
+					Запланувати
+				</button> -->
+				<LanguageSelect bind:value={language} />
+
+				<ActionButton class="block w-full bg-blue-600 hover:bg-blue-500" on:click={save}>
+					Publish
+				</ActionButton>
+			</div>
+		</div>
+	</div>
 </ModalWindow>

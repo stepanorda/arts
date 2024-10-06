@@ -19,7 +19,7 @@ class Post extends Model
 
     protected $casts = [
         'published_at' => 'datetime',
-        'body' => 'json',
+        'body' => 'array',
     ];
 
     public function user()

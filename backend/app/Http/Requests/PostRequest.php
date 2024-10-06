@@ -43,33 +43,9 @@ class PostRequest extends FormRequest
                 'nullable',
                 'exists:images,id'
             ],
-            'body' => [
+            'body.ops' => [
                 'array'
             ],
-            'body.*.type' => [
-                'required',
-                Rule::in(['text', 'image', 'work'])
-            ],
-            'body.*.image_id' => [
-                'integer',
-                'nullable',
-                'required_if:body.*.type,image',
-                'exists:images,id'
-            ],
-            'body.*.text' => [
-                'string',
-                'nullable',
-                'required_if:body.*.type,text',
-            ],
-            'body.*.works' => [
-                'array',
-                'nullable',
-                'required_if:body.*.type,work',
-            ],
-            'body.*.works.*' => [
-                'integer',
-                'exists:works,id',
-            ]
         ];
     }
 }

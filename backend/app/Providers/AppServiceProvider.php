@@ -10,12 +10,15 @@ use App\Models\User;
 use App\Models\Work;
 use App\Models\WorkBlock;
 use App\Nova\Blog;
+use Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull;
+use Illuminate\Foundation\Http\Middleware\TrimStrings;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Laravel\Cashier\Cashier;
 use Laravel\Telescope\Telescope;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Http\Request;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -40,6 +43,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        TrimStrings::skipWhen(function (Request $request) {
+            return $request->is('api2/post/*');
+        });
+
+        ConvertEmptyStringsToNull::skipWhen(function (Request $request) {
+            return $request->is('api2/post/*');
+        });
         Schema::defaultStringLength(191);
 
         Password::defaults(fn() => Password::min(8)->mixedCase()->numbers());

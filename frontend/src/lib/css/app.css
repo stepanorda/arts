@@ -1,9 +1,73 @@
+@import 'quill/dist/quill.bubble.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
 	@apply bg-white dark:bg-black text-black dark:text-gray-100;
+}
+
+.ql-bubble .ql-editor blockquote {
+	@apply dark:border-zinc-600 p-3;
+
+	border-left: 3px solid black;
+	margin-bottom: 0px;
+	margin-top: 0px;
+	padding-left: 20px;
+}
+
+.ql-editor ol,
+.ql-editor pre,
+.ql-editor blockquote,
+.ql-editor h1,
+.ql-editor h2,
+.ql-editor h3,
+.ql-editor h4,
+.ql-editor h5,
+.ql-editor h6 {
+	@apply xl:w-2/3 mx-auto;
+}
+
+.ql-editor figcaption {
+	@apply text-zinc-500 pt-3 text-center text-sm font-light;
+}
+
+.ql-editor p {
+	@apply xl:w-2/3 mx-auto py-3 text-xl;
+}
+.ql-editor figure {
+	@apply xl:w-2/3 mx-auto py-7;
+}
+
+.ql-editor img {
+	@apply hover:ring-4 hover:ring-green-500;
+	caret-color: transparent;
+}
+
+.ql-editor [contenteditable='true'].empty:before {
+	content: attr(placeholder);
+	pointer-events: none;
+	display: block; /* For Firefox block - need to be checked */
+	position: absolute;
+
+	white-space: nowrap;
+}
+
+.ql-editor [contenteditable='true'].empty:before {
+	@apply w-1/2 start-1/4 text-sm text-zinc-500;
+}
+
+.ql-editor.ql-blank:before {
+	@apply xl:w-2/3 mx-auto p-3 text-zinc-500 not-italic;
+}
+
+.ql-editor [contenteditable='true'].empty {
+	position: relative;
+}
+
+.ql-container.ql-bubble:not(.ql-disabled) a:not(.ql-close) {
+	white-space: wrap;
 }
 
 * {
@@ -32,6 +96,7 @@ body {
 *::-webkit-resizer {
 	all: initial !important;
 }
+
 @layer base {
 	input[type='number']::-webkit-inner-spin-button,
 	input[type='number']::-webkit-outer-spin-button {
