@@ -16,6 +16,7 @@
 		closeButtonAddStyle = 'text-white ';
 	let clazz = '';
 	export { clazz as class };
+	export let dialogOverlayClass = '';
 
 	let closeButton = null;
 
@@ -39,10 +40,10 @@
 		<slot name="otherEl" />
 
 		<DialogOverlay
-			class="  fixed inset-0 bg-black/85    min-h-screen overflow-y-scroll md:px-9 lg:px-20 xl:px-16 "
+			class="  fixed inset-0 bg-black/85    overflow-y-scroll md:px-9 lg:px-20 xl:px-16 {dialogOverlayClass}"
 		>
 			<DialogDescription
-				class="dark:border static  {clazz} mx-auto  bg-white   items-end justify-center sm:items-center transform overflow-y-auto  dark:bg-zinc-950 dark:border-0 dark:sm:border-zinc-800 dark:text-zinc-300  "
+				class=" static mx-auto  bg-white   items-end justify-center sm:items-center transform overflow-y-auto  dark:bg-zinc-950  dark:sm:border-zinc-800 dark:text-zinc-300  {clazz}  "
 			>
 				<div class="flex flex-col gap-3">
 					{#if $$slots?.header}

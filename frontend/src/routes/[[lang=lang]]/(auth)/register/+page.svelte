@@ -12,7 +12,7 @@
 	export let form: ActionData;
 </script>
 
-<div class="flex min-h-full flex-col pt-12 sm:px-6 lg:px-8 bg:white sm:bg-gray-50 dark:bg-black">
+<div class="flex min-h-full flex-col pt-9 sm:px-6 lg:px-8 bg:white sm:bg-gray-50 dark:bg-black">
 	<div class="sm:mx-auto sm:w-full sm:max-w-md">
 		<div class="flex items-center justify-center">
 			<Logo size="w-64 h-28" />
@@ -21,7 +21,7 @@
 		<h2
 			class=" my-3 sm:my-6 text-center text-2xl md:text-3xl font-bold tracking-tight text-black dark:text-white"
 		>
-			{$t('global.register.page_title')}
+			{$t('global.login.create_account')}
 		</h2>
 	</div>
 
