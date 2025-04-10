@@ -59,7 +59,7 @@
 
 	<div class=" sm:mx-auto sm:w-full sm:max-w-md">
 		<div
-			class="bg-white dark:bg-black sm:dark:border sm:dark:border-zinc-700 px-6 py-6 sm:p-9 sm:shadow rounded-xl"
+			class="bg-white dark:bg-black sm:dark:border-zinc-700 px-6 py-6 sm:p-9 sm:shadow rounded-xl"
 		>
 			<form class="space-y-6" method="POST" use:enhance={onSubmit}>
 				{#if form?.message}
@@ -94,7 +94,8 @@
 					</div>
 				</div>
 
-				<ActionButton class="bg-zinc-900 dark:bg-amber-500 w-full rounded-sm hover:bg-blue-500"
+				<ActionButton
+					class="bg-zinc-800  w-full rounded-sm hover:bg-amber-500 dark:bg-amber-600 dark:hover:bg-amber-500"
 					>{$t('global.login.sign_in')}</ActionButton
 				>
 			</form>

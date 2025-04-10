@@ -66,7 +66,8 @@
 					<PasswordInput name="password_confirmation" {id} {error} />
 				</InputGroup>
 
-				<ActionButton class="bg-blue-600 w-full rounded-sm hover:bg-blue-500"
+				<ActionButton
+					class="bg-zinc-800 py-3 w-full rounded-sm hover:bg-zinc-900 dark:hover:bg-amber-600"
 					>{$t('global.login.register')}</ActionButton
 				>
 			</form>
