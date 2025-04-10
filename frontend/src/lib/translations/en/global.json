@@ -32,7 +32,8 @@
 		"unblock": "Unblock",
 		"get_in_touch": "Get in touch",
 		"send_message": "Send message",
-		"continue": "Continue"
+		"continue": "Continue",
+		"google_sign": "Sign up with Google"
 	},
 	"comment": {
 		"add": {
@@ -137,7 +138,9 @@
 		"recover": "Recover",
 		"register": "Register",
 		"remember_me": "Remember me",
-		"sign_in": "Sign in"
+		"sign_in": "Sign in",
+		"create_account": "Create account",
+		"no_account": "Don't have an account?"
 	},
 	"main_page": {
 		"category": {
@@ -218,7 +221,6 @@
 	},
 	"published_on": "published on",
 	"register": {
-		"page_title": "Register",
 		"password_confirmation": "Confirm password",
 		"username": "Username"
 	},
