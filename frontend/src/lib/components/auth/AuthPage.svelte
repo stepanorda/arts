@@ -13,7 +13,8 @@
 	import { checkAuth } from '$lib/stores/auth';
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
-
+	import GoogleButton from './GoogleButton.svelte';
+	import Divider from '../atoms/Divider.svelte';
 	const t = getContext('t');
 	const locale = getContext('locale');
 
@@ -45,21 +46,21 @@
 	}
 </script>
 
-<div class="flex min-h-full flex-col pt-12 sm:px-6 lg:px-8 bg:white sm:bg-gray-50 dark:bg-black">
+<div class="flex min-h-full flex-col pt-9 sm:px-6 lg:px-8 bg:white sm:bg-gray-50 dark:bg-black">
 	<div class="sm:mx-auto sm:w-full sm:max-w-md">
 		<div class="flex items-center justify-center">
-			<Logo size="w-64 h-28" />
+			<Logo size="w-40 h-20 sm:w-64 sm:h-28" />
 		</div>
 
-		<h2
-			class="my-3 sm:my-6 text-center text-2xl md:text-3xl font-bold tracking-tight text-black dark:text-white"
-		>
+		<h2 class="mb-6 mt-3 text-center text-lg sm:text-2xl font-semibold">
 			{$t('global.login.page_title')}
 		</h2>
 	</div>
 
 	<div class=" sm:mx-auto sm:w-full sm:max-w-md">
-		<div class="bg-white dark:bg-zinc-900 px-3 py-6 sm:p-9 sm:shadow rounded-sm">
+		<div
+			class="bg-white dark:bg-black sm:dark:border sm:dark:border-zinc-700 px-6 py-6 sm:p-9 sm:shadow rounded-xl"
+		>
 			<form class="space-y-6" method="POST" use:enhance={onSubmit}>
 				{#if form?.message}
 					<p class="text-red-600">{form?.message}</p>
@@ -93,25 +94,24 @@
 					</div>
 				</div>
 
-				<ActionButton class="bg-blue-600 w-full rounded-sm hover:bg-blue-500"
+				<ActionButton class="bg-zinc-900 dark:bg-amber-500 w-full rounded-sm hover:bg-blue-500"
 					>{$t('global.login.sign_in')}</ActionButton
 				>
 			</form>
-			<a
-				href={localePath($locale, '/register')}
-				class="block mt-3 text-center bg-amber-500 rounded-sm hover:bg-amber-400 px-3 py-2 text-sm font-semibold text-white shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-				>{$t('global.buttons.register')}</a
-			>
 
-			{#if false}
-				<!--			<div class="mt-6"><Divider>{$t('global.common.continue_with')}</Divider></div>-->
-				<!--				-->
-				<!--				<div class="mt-6">-->
-				<!--				<SocialMediaButtons />-->
+			<div class="mt-6"><Divider>{$t('global.common.continue_with')}</Divider></div>
 
-				<!--				-->
-				<!--			</div>-->
-			{/if}
+			<div class="mt-6">
+				<GoogleButton />
+			</div>
+
+			<div class="text-center mt-9 text-sm">
+				<span>{$t('global.login.no_account')} </span>
+
+				<a href={localePath($locale, '/register')} class=" font-semibold underline"
+					>{$t('global.login.create_account')}</a
+				>
+			</div>
 		</div>
 	</div>
 </div>
